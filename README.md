@@ -45,6 +45,14 @@ Define `CONTENT_DIRECTORY` con la ruta absoluta de un volumen persistente con pe
 
 Despliega con `npm ci`, `npm run build`, `npm start`, HTTPS y un volumen persistente. Este almacenamiento no es adecuado para discos efímeros ni funciones serverless: para esos alojamientos se debe conectar una base de datos u objetos persistentes antes de publicar. Configura en el proxy un límite de petición de 40 MB para admitir el envoltorio JSON de hasta tres TXT y la portada y limita tanto los intentos de acceso como los envíos públicos a `POST /api/books/` para evitar spam y consumo de disco. El servidor comprueba por separado el límite de 2 MB por TXT.
 
+### Despliegue en Vercel
+
+Desde **Storage** en el proyecto, crea y conecta un almacén **Blob privado**. Vercel añade `BLOB_READ_WRITE_TOKEN` al entorno seleccionado. Configura Production y vuelve a desplegar. Para probar escrituras en Preview, conecta un almacén privado independiente. Con esa variable, el servidor guarda los libros, ediciones, traducciones, estados y peticiones en Blob. `ADMIN_TOKEN` sigue siendo la clave para entrar en Administración.
+
+El contenido creado previamente en disco se conserva allí. Para trasladar ediciones, traducciones, libros aprobados y estados a Blob, conserva sus rutas relativas bajo el prefijo `content/`. Los envíos pendientes usan el formato `{ story, status: "pending" }` bajo `content/requests/submissions/`.
+
+Vercel Functions limita a 4,5 MB el cuerpo total de cada petición. En Vercel, el JSON con los TXT y la portada debe caber en ese límite.
+
 Los libros importados tienen una ficha propia con portada según su género, autor, páginas y progreso de lectura independiente. Aparecen en búsquedas y filtros sin recompilar.
 
 En «Libros del catálogo» del panel de administración puedes desactivar un libro para ocultar su ficha, lector y portada; activarlo vuelve a hacerlos públicos. «Eliminar» retira el libro también del panel y requiere confirmación. El archivo no se borra físicamente: el estado se conserva en `status/`, junto a los libros y las peticiones. Incluye ese directorio en las copias de seguridad.

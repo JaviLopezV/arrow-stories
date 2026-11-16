@@ -3,6 +3,7 @@ import { MAX_COVER_BYTES, validateCover } from "@/lib/book-cover";
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { authorized, sameOrigin } from "@/lib/admin-auth";
+import { ContentStorageNotConfiguredError } from "@/lib/content-files";
 import {
   bookStatus,
   getStoredStory,
@@ -178,11 +179,8 @@ async function writeBook(
         source: content ? undefined : existing.source,
       });
       return NextResponse.json({ title, author, slug: existing.slug });
-    } catch {
-      return NextResponse.json(
-        { error: "No se pudo guardar el libro." },
-        { status: 500 },
-      );
+    } catch (error) {
+      return storageError(error, "No se pudo guardar el libro.");
     }
   }
   if (!content)
@@ -213,13 +211,19 @@ async function writeBook(
       { slug, title, pages: content.pages.length },
       { status: 201 },
     );
-  } catch {
-    return NextResponse.json(
-      {
-        error:
-          "No se pudo guardar el libro. Comprueba el almacenamiento del servidor.",
-      },
-      { status: 500 },
+  } catch (error) {
+    return storageError(
+      error,
+      "No se pudo guardar el libro. Comprueba el almacenamiento del servidor.",
     );
   }
+}
+
+function storageError(error: unknown, message: string) {
+  if (error instanceof ContentStorageNotConfiguredError) {
+    return NextResponse.json({ error: error.message }, { status: 503 });
+  }
+  const cause = error as NodeJS.ErrnoException | undefined;
+  console.error("No se pudo guardar el libro", cause?.name, cause?.code);
+  return NextResponse.json({ error: message }, { status: 500 });
 }
