@@ -18,7 +18,7 @@ export default function Reader({ story: source }: { story: Story }) {
   }, [story.title]);
   const [page, setPage] = useState(1);
   const [ready, setReady] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   const [size, setSize] = useState(19);
   const defaultPageCount = localizeStory(
     published,

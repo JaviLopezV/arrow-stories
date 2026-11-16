@@ -578,14 +578,23 @@ p {
   color: var(--muted);
 }
 .reader {
-  background: #f2efe6;
-  color: #383a30;
+  --reader-bg: #edf3fa;
+  --reader-text: #22324a;
+  --reader-muted: #49617f;
+  --reader-border: #7388a4;
+  --accent: #315d96;
+  color-scheme: light;
+  background: var(--reader-bg);
+  color: var(--reader-text);
   min-height: 100vh;
-  --accent: #728046;
 }
 .reader-dark {
-  background: #1d221e;
-  color: #d3d6c9;
+  --reader-bg: var(--bg);
+  --reader-text: var(--text);
+  --reader-muted: var(--muted);
+  --reader-border: #596d89;
+  --accent: #b2d2ff;
+  color-scheme: dark;
 }
 .reader-header {
   display: flex;
@@ -593,7 +602,7 @@ p {
   justify-content: space-between;
   gap: 20px;
   padding: 23px 5%;
-  border-bottom: 1px solid #8883;
+  border-bottom: 1px solid var(--reader-border);
   font-size: 12px;
 }
 .reader-title {
@@ -605,7 +614,7 @@ p {
   gap: 10px;
 }
 .reader-settings button {
-  border: 1px solid #8884;
+  border: 1px solid var(--reader-border);
   border-radius: 4px;
   background: transparent;
   color: inherit;
@@ -613,7 +622,7 @@ p {
 }
 .reading-progress {
   height: 2px;
-  background: #8d9b69;
+  background: var(--accent);
   transition: width 0.2s;
 }
 .reading-page {
@@ -623,7 +632,7 @@ p {
 }
 .reading-page .eyebrow {
   justify-content: center;
-  color: #8b8f7c;
+  color: var(--reader-muted);
   font-size: 8px;
   letter-spacing: 1.5px;
 }
@@ -644,12 +653,12 @@ p {
     italic 14px Georgia,
     serif;
   margin: 35px 0;
-  color: #8b907b;
+  color: var(--reader-muted);
 }
 .chapter span {
   height: 1px;
   width: 50px;
-  background: #8884;
+  background: var(--reader-border);
 }
 .prose {
   font-family: Georgia, serif;
@@ -663,7 +672,7 @@ p {
   font-size: 3.5em;
   line-height: 0.9;
   padding: 10px 10px 0 0;
-  color: #778357;
+  color: var(--accent);
 }
 .page-number {
   display: block;
@@ -672,7 +681,7 @@ p {
   font:
     13px Georgia,
     serif;
-  color: #939781;
+  color: var(--reader-muted);
 }
 .reader-pagination {
   display: flex;
@@ -681,13 +690,13 @@ p {
   max-width: 740px;
   margin: auto;
   padding: 25px 30px;
-  border-top: 1px solid #8884;
+  border-top: 1px solid var(--reader-border);
   font-size: 12px;
   gap: 10px;
 }
 .reader-pagination button {
   background: transparent;
-  border: 1px solid #8885;
+  border: 1px solid var(--reader-border);
   border-radius: 4px;
   color: inherit;
   padding: 12px 18px;
@@ -695,19 +704,23 @@ p {
 .reader-pagination select {
   background: transparent;
   color: inherit;
-  border: 1px solid #8885;
+  border: 1px solid var(--reader-border);
   padding: 7px;
   margin: 0 5px;
   border-radius: 3px;
 }
-.reader-pagination option {
-  color: #30372a;
-  background: #f2efe6;
+.reader .language-switcher {
+  border-color: var(--reader-border);
+}
+.reader-pagination option,
+.reader .language-switcher option {
+  color: var(--reader-text);
+  background: var(--reader-bg);
 }
 .reader-hint {
   text-align: center;
   font-size: 10px;
-  color: #8c9480;
+  color: var(--reader-muted);
   padding: 15px 20px 30px;
   margin: 0;
 }
@@ -980,7 +993,7 @@ p {
     13px/1.7 Arial,
     sans-serif;
   padding: 15px;
-  border: 1px solid #8885;
+  border: 1px solid var(--reader-border);
   border-radius: 4px;
 }
 @media (max-width: 1000px) {
