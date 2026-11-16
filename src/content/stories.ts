@@ -24,3 +24,4 @@ export function localizeStory(story: Story, locale: Locale) {
 }
 // La misma página se conserva al cambiar de idioma; mantén la paginación alineada entre traducciones.
 export const progressKey = (slug: string) => `lumbre-page:${slug}`;
+export const lastReadKey = "lumbre-last-read";

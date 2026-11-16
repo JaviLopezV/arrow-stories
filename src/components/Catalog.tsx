@@ -2,18 +2,44 @@
 import Link from "next/link";
 import { languages, type Locale } from "@/i18n/messages";
 import { useEffect, useState } from "react";
-import { type Story, progressKey, localizeStory } from "@/content/stories";
+import {
+  type Story,
+  progressKey,
+  lastReadKey,
+  localizeStory,
+} from "@/content/stories";
 import { LanguageSwitcher, useLanguage } from "@/i18n/LanguageProvider";
 export default function Catalog({ books }: { books: Story[] }) {
   const { locale, t } = useLanguage();
   useEffect(() => {
     document.title = `Lumbre · ${t.waiting}`;
   }, [t.waiting]);
+  const [lastReadSlug, setLastReadSlug] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [filter, setFilter] = useState("all");
   const [contentLanguage, setContentLanguage] = useState<Locale | "all">("all");
   const [query, setQuery] = useState("");
-  const featured = books.find((book) => book.source);
+  useEffect(() => {
+    function updateLastRead() {
+      try {
+        setLastReadSlug(localStorage.getItem(lastReadKey));
+      } catch {
+        setLastReadSlug(null);
+      }
+    }
+    function onStorage(event: StorageEvent) {
+      if (event.key === lastReadKey || event.key === null) updateLastRead();
+    }
+    updateLastRead();
+    window.addEventListener("pageshow", updateLastRead);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("pageshow", updateLastRead);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+  const lastRead = books.find((book) => book.slug === lastReadSlug);
+  const featured = lastRead ?? books.find((book) => book.source) ?? books[0];
   const story = featured && localizeStory(featured, locale);
   useEffect(() => {
     if (!story) return;
@@ -22,7 +48,9 @@ export default function Catalog({ books }: { books: Story[] }) {
       setProgress(
         Number.isInteger(n) && n >= 1 && n <= story.pages.length ? n : 0,
       );
-    } catch {}
+    } catch {
+      setProgress(0);
+    }
   }, [story?.slug, story?.pages.length]);
   const visibleBooks = books
     .filter(
@@ -60,12 +88,20 @@ export default function Catalog({ books }: { books: Story[] }) {
             <div className="hero-shade" />
             <div className="hero-content">
               <p className="eyebrow">
-                ● &nbsp; {t.featured} <span>/</span> Nº 001
+                ● &nbsp; {lastRead ? t.lastRead : t.featured}
               </p>
-              <p className="hero-kicker">{story.collection}</p>
+              {story.collection && (
+                <p className="hero-kicker">{story.collection}</p>
+              )}
               <h1 lang={story.contentLocale}>{story.title}</h1>
               <div className="metadata">
-                <span>{t.fantasy}</span>
+                <span>
+                  {
+                    t[
+                      story.genre as "fantasy" | "mystery" | "romance" | "drama"
+                    ]
+                  }
+                </span>
                 <i />
                 {story.pages.length} {t.pages}
                 <i />
@@ -73,7 +109,7 @@ export default function Catalog({ books }: { books: Story[] }) {
               </div>
               <div className="hero-actions">
                 <Link className="button primary" href={`/leer/${story.slug}`}>
-                  ▸ &nbsp; {progress ? t.continue : t.start}
+                  ▸ &nbsp; {lastRead || progress ? t.continue : t.start}
                   <span>↗</span>
                 </Link>
                 <a className="text-button" href="#biblioteca">
@@ -85,10 +121,6 @@ export default function Catalog({ books }: { books: Story[] }) {
             <div className="hero-caption">
               <span>{t.authorLabel}</span>
               <strong>{story.author}</strong>
-            </div>
-            <div className="hero-counter">
-              01 <span>/ 01</span>
-              <div />
             </div>
           </section>
         )}

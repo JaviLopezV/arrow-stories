@@ -1,8 +1,8 @@
 :root {
-  --bg: #131512;
-  --text: #eeeee5;
-  --muted: #969b91;
-  --accent: #d7ed91;
+  --bg: #080f1d;
+  --text: #edf2fa;
+  --muted: #9baac1;
+  --accent: #b2d2ff;
 }
 * {
   box-sizing: border-box;
@@ -71,7 +71,7 @@ nav {
   font-size: 13px;
 }
 .header nav a {
-  color: #bbbfb5;
+  color: #b7c6dc;
 }
 .header nav .active {
   color: var(--text);
@@ -89,7 +89,7 @@ nav {
   margin-left: auto;
   font-size: 9px;
   letter-spacing: 2px;
-  color: #c0c7b5;
+  color: #bbc9dd;
 }
 .hero {
   height: 760px;
@@ -103,18 +103,12 @@ nav {
   inset: 0;
 }
 .hero-art {
-  background: url("/art/forest.svg") center 46% / cover;
+  background: var(--bg) url("/art/starry-night.webp") center / cover;
 }
 .hero-shade {
   background:
-    linear-gradient(
-      90deg,
-      #10150ff5 0%,
-      #10150fd9 28%,
-      #10150f42 65%,
-      #10150f10
-    ),
-    linear-gradient(0deg, var(--bg), transparent 30%);
+    linear-gradient(90deg, #080f1d70, #080f1d38 42%, transparent 75%),
+    linear-gradient(0deg, var(--bg), transparent 25%);
 }
 .hero-content {
   position: relative;
@@ -128,16 +122,16 @@ nav {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #ced9bd;
+  color: #c4d4ed;
 }
 .eyebrow > span {
   margin: 0 8px;
-  color: #8d9686;
+  color: #8599b8;
 }
 .hero-kicker {
   font-family: Georgia, serif;
   font-style: italic;
-  color: #bac0ae;
+  color: #afbfda;
   font-size: 17px;
   margin: 43px 0 15px;
 }
@@ -157,32 +151,32 @@ p {
 }
 .hero h1 em {
   font-weight: 400;
-  color: #deebbb;
+  color: #c4dbff;
 }
 .hero-description {
   font-size: 14px;
   line-height: 1.8;
-  color: #c0c5b9;
+  color: #bfcee2;
 }
 .metadata {
   display: flex;
   align-items: center;
   gap: 14px;
   font-size: 11px;
-  color: #adb5a2;
+  color: #acbdd6;
   margin-top: 24px;
 }
 .metadata > span {
-  border: 1px solid #9aa78c55;
+  border: 1px solid #95afd255;
   padding: 5px 10px;
   border-radius: 3px;
-  color: #dbe6c7;
+  color: #d3e3fb;
 }
 .metadata i {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #839174;
+  background: #8aa5cc;
 }
 .hero-actions {
   display: flex;
@@ -204,10 +198,10 @@ p {
 }
 .primary {
   background: var(--accent);
-  color: #222b17;
+  color: #101e35;
 }
 .primary:hover {
-  background: #e8ffb0;
+  background: #cee2ff;
   transform: translateY(-2px);
 }
 .text-button {
@@ -215,7 +209,7 @@ p {
 }
 .hero-footnote {
   font-size: 10px;
-  color: #939d86;
+  color: #a0b3ce;
   margin-top: 20px;
 }
 .hero-caption {
@@ -229,29 +223,12 @@ p {
 .hero-caption span {
   font-size: 8px;
   letter-spacing: 2px;
-  color: #bdc4b4;
+  color: #bdcde4;
 }
 .hero-caption strong {
   font:
     italic 23px Georgia,
     serif;
-}
-.hero-counter {
-  position: absolute;
-  bottom: 33px;
-  right: 5%;
-  font-size: 12px;
-}
-.hero-counter span {
-  color: #79816f;
-  font-size: 10px;
-  margin-left: 8px;
-}
-.hero-counter div {
-  width: 90px;
-  height: 2px;
-  background: var(--accent);
-  margin-top: 13px;
 }
 .library {
   padding: 48px 5% 0;
@@ -279,7 +256,7 @@ p {
 .library-count {
   font-size: 9px;
   letter-spacing: 1px;
-  color: #9ba290;
+  color: #a1b3ce;
 }
 .library-toolbar {
   display: flex;
@@ -297,23 +274,23 @@ p {
 .filters button {
   border: 1px solid transparent;
   border-radius: 25px;
-  color: #a7ad9e;
+  color: #a9bad4;
   background: transparent;
   font-size: 11px;
   padding: 9px 17px;
 }
 .filters .selected {
-  background: #e6edda;
-  color: #20271a;
+  background: #dbe9fc;
+  color: #15243d;
 }
 .filters button:hover:not(.selected) {
-  border-color: #536047;
+  border-color: #526b90;
 }
 .search {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #9fa68f;
+  color: #9cafd0;
 }
 .search > span {
   font-size: 24px;
@@ -461,14 +438,14 @@ p {
   justify-content: space-between;
   margin: 19px 0 10px;
   font-size: 8px;
-  color: #aeb69c;
+  color: #acbdd8;
 }
 .card-meta > span:first-child {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 .card-meta > span:last-child {
-  color: #7e8775;
+  color: #8da2bf;
 }
 .story-card > h3 {
   font:
@@ -478,7 +455,7 @@ p {
 }
 .story-card > p {
   font-size: 11px;
-  color: #858e7c;
+  color: #93a8c6;
   line-height: 1.6;
 }
 .upcoming {
@@ -490,7 +467,7 @@ p {
   padding: 22px 0;
   display: flex;
   justify-content: space-between;
-  color: #8b9480;
+  color: #97aecc;
   font-size: 10px;
 }
 .library-bottom > a {
@@ -517,20 +494,20 @@ p {
   margin: 0;
 }
 .about > p em {
-  color: #a9b49a;
+  color: #adc4e4;
 }
 .about > div {
   margin-left: auto;
   font-size: 12px;
   line-height: 1.9;
-  color: #99a18f;
+  color: #9eafcd;
 }
 .about > div span {
   display: block;
   margin-top: 15px;
   font-size: 8px;
   letter-spacing: 1.7px;
-  color: #c6d3b4;
+  color: #c9d8ee;
 }
 .site-footer {
   display: flex;
@@ -543,7 +520,7 @@ p {
 }
 .site-footer .brand {
   font-size: 24px;
-  color: #c5cdbb;
+  color: #c8d7ee;
 }
 .site-footer > span,
 .site-footer-details {
@@ -803,11 +780,11 @@ p {
     height: 710px;
   }
   .hero-art {
-    background-position: 60% center;
+    background-position: 68% center;
   }
   .hero-shade {
     background:
-      linear-gradient(90deg, #10150ff0, #10150f44),
+      linear-gradient(90deg, #080f1db3, #080f1d38),
       linear-gradient(0deg, var(--bg), transparent 55%);
   }
   .hero-content {
@@ -830,9 +807,6 @@ p {
   }
   .hero-caption {
     display: none;
-  }
-  .hero-counter {
-    bottom: 25px;
   }
   .library {
     padding-top: 20px;

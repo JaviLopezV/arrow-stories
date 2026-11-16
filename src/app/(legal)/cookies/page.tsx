@@ -18,6 +18,12 @@ export default function CookiePolicy() {
         </dt>
         <dd>Guarda el idioma que eliges para las próximas visitas.</dd>
         <dt>
+          <code>lumbre-last-read</code>
+        </dt>
+        <dd>
+          Recuerda la última historia que abriste para mostrarla en portada.
+        </dd>
+        <dt>
           <code>lumbre-page:&lt;identificador del libro&gt;</code>
         </dt>
         <dd>
@@ -25,7 +31,7 @@ export default function CookiePolicy() {
         </dd>
       </dl>
       <p>
-        Las dos preferencias son propias de Lumbre. Se guardan en el navegador
+        Estas preferencias son propias de Lumbre. Se guardan en el navegador
         hasta que las borres o el navegador elimine los datos del sitio. La
         aplicación usa estas claves para prestar las funciones de lectura y
         personalización. La configuración de la aplicación no incluye cookies

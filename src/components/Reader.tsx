@@ -1,7 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { type Story, progressKey, localizeStory } from "@/content/stories";
+import {
+  type Story,
+  progressKey,
+  lastReadKey,
+  localizeStory,
+} from "@/content/stories";
 import { LanguageSwitcher, useLanguage } from "@/i18n/LanguageProvider";
 import { languages } from "@/i18n/messages";
 export default function Reader({ story: source }: { story: Story }) {
@@ -30,6 +35,7 @@ export default function Reader({ story: source }: { story: Story }) {
     if (ready) {
       try {
         localStorage.setItem(progressKey(story.slug), String(page));
+        localStorage.setItem(lastReadKey, story.slug);
       } catch {}
       window.scrollTo({ top: 0, behavior: "instant" });
     }
