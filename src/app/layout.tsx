@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import SiteFooter from "@/components/SiteFooter";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 export const metadata: Metadata = {
   title: {
@@ -15,7 +16,10 @@ export default function Layout({
   return (
     <html lang="es">
       <body>
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider>
+          {children}
+          <SiteFooter year={new Date().getFullYear()} />
+        </LanguageProvider>
       </body>
     </html>
   );

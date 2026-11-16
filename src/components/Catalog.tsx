@@ -176,17 +176,6 @@ export default function Catalog({ books }: { books: Story[] }) {
           </div>
         </section>
       </main>
-      <footer>
-        <Link className="brand" href="/">
-          ◒ lumbre.
-        </Link>
-        <span>{t.footer}</span>
-        <span>
-          © {new Date().getFullYear()} Lumbre ·{" "}
-          <Link href="/enviar">Enviar un libro</Link> ·{" "}
-          <Link href="/admin">Administrar</Link>
-        </span>
-      </footer>
     </>
   );
 }

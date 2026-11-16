@@ -10,6 +10,7 @@ import {
   saveBookEdit,
   submitBook,
 } from "@/lib/content-store";
+import { submissionTermsVersion } from "@/lib/legal";
 import { MAX_TXT_BYTES, parseTxt } from "@/lib/import-txt";
 import { languages, type Locale } from "@/i18n/messages";
 export const runtime = "nodejs";
@@ -79,6 +80,10 @@ async function writeBook(
     const body = JSON.parse(
       new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)),
     );
+    if (!existing && body.termsVersion !== submissionTermsVersion)
+      throw new Error(
+        "Acepta las condiciones de envío vigentes. Actualiza la página si han cambiado.",
+      );
     if (
       typeof body.title !== "string" ||
       !body.title.trim() ||
@@ -198,15 +203,18 @@ async function writeBook(
       .slice(0, 80) || "libro";
   const slug = `${prefix}-${randomUUID()}`;
   try {
-    await submitBook({
-      slug,
-      title,
-      author,
-      genre,
-      cover,
-      originalLocale: locale,
-      translations: { ...submittedTranslations, [locale]: content },
-    });
+    await submitBook(
+      {
+        slug,
+        title,
+        author,
+        genre,
+        cover,
+        originalLocale: locale,
+        translations: { ...submittedTranslations, [locale]: content },
+      },
+      submissionTermsVersion,
+    );
     return NextResponse.json(
       { slug, title, pages: content.pages.length },
       { status: 201 },

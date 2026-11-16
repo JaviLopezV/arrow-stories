@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { siteOwner, submissionTermsVersion } from "@/lib/legal";
 import { useMemo, useState } from "react";
 import { COVER_ACCEPT, MAX_COVER_BYTES } from "@/lib/book-cover";
 import { MAX_TXT_BYTES, parseTxt } from "@/lib/import-txt";
@@ -40,6 +42,7 @@ export default function BookForm({
     ? selected.length >= 2 && selected.every((item) => uploads[item])
     : Boolean(upload);
   const [page, setPage] = useState(0);
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const preview = useMemo(
@@ -110,7 +113,7 @@ export default function BookForm({
   }
 
   async function save() {
-    if ((!book && !readyToSend) || busy) return;
+    if (busy || (!book && (!readyToSend || !acceptsTerms))) return;
     setBusy(true);
     setError("");
     try {
@@ -125,6 +128,7 @@ export default function BookForm({
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
+            termsVersion: book ? undefined : submissionTermsVersion,
             title,
             author,
             genre,
@@ -419,6 +423,35 @@ export default function BookForm({
             </article>
           </details>
         )}
+        {!book && (
+          <div className="submission-legal" lang="es">
+            <p>
+              {siteOwner.name} usa los datos y archivos del envío para revisar
+              la obra y publicarla si se aprueba. La revisión puede incluir un
+              informe de Cloudflare Workers AI. Consulta cómo se tratan tus
+              datos y cómo ejercer tus derechos en la{" "}
+              <Link href="/privacidad" target="_blank" rel="noopener">
+                política de privacidad (se abre en otra pestaña)
+              </Link>
+              .
+            </p>
+            <p>
+              <Link href="/condiciones-de-envio" target="_blank" rel="noopener">
+                Leer las condiciones de envío (se abre en otra pestaña)
+              </Link>
+            </p>
+            <label>
+              <input
+                type="checkbox"
+                required
+                checked={acceptsTerms}
+                onChange={(event) => setAcceptsTerms(event.target.checked)}
+              />
+              Acepto las condiciones de envío y confirmo que tengo los derechos
+              necesarios sobre el material que envío.
+            </label>
+          </div>
+        )}
         <div className="book-form-footer">
           <p role="status">
             {error ||
@@ -438,7 +471,9 @@ export default function BookForm({
               type="submit"
               className="button primary"
               disabled={
-                !title.trim() || !author.trim() || (!book && !readyToSend)
+                !title.trim() ||
+                !author.trim() ||
+                (!book && (!readyToSend || !acceptsTerms))
               }
             >
               {book ? "Guardar cambios" : "Enviar para revisión"}

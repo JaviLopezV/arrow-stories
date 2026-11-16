@@ -23,6 +23,7 @@ const submissionKey = (slug: string) => `${submissionDirectory}/${slug}.json`;
 type Submission = {
   story: Story;
   status: "pending" | "approved" | "rejected";
+  acceptance?: { version: string; acceptedAt: string };
 };
 
 async function readJson<T>(key: string): Promise<T | null> {
@@ -53,9 +54,16 @@ export async function restore(slug: string, locale: Locale) {
   await deleteContentFile(translationKey(slug, locale));
 }
 
-export async function submitBook(story: Story) {
+export async function submitBook(story: Story, termsVersion: string) {
   if (usesBlob()) {
-    const submission: Submission = { story, status: "pending" };
+    const submission: Submission = {
+      story,
+      status: "pending",
+      acceptance: {
+        version: termsVersion,
+        acceptedAt: new Date().toISOString(),
+      },
+    };
     await writeContentFile(
       submissionKey(story.slug),
       JSON.stringify(submission),

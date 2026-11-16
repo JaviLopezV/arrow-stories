@@ -29,7 +29,7 @@ El cambio de idioma conserva el número de página. Mantén alineadas las págin
 
 ## Publicación de TXT para todos
 
-Abre «Enviar un libro» (`/enviar`), introduce título, autor, género e idioma y sube un TXT UTF-8 de hasta 2 MB. Para publicar varias versiones juntas, marca «Multiidioma», elige el idioma principal y los adicionales y adjunta un TXT por cada idioma. Se envían en una sola petición, se pueden revisar por separado y se publican como un único libro. Puedes adjuntar una portada JPG, PNG o WebP de hasta 1 MB; si no la adjuntas, se usa una portada por género. Tras revisar la vista previa, pulsa «Enviar para revisión». No se necesita cuenta ni clave y el libro aún no es público.
+Abre «Enviar un libro» (`/enviar`), introduce título, autor, género e idioma y sube un TXT UTF-8 de hasta 2 MB. Para publicar varias versiones juntas, marca «Multiidioma», elige el idioma principal y los adicionales y adjunta un TXT por cada idioma. Se envían en una sola petición, se pueden revisar por separado y se publican como un único libro. Puedes adjuntar una portada JPG, PNG o WebP de hasta 1 MB; si no la adjuntas, se usa una portada por género. Tras revisar la vista previa, lee y acepta las condiciones de envío y pulsa «Enviar para revisión». No se necesita cuenta ni clave y el libro aún no es público.
 
 En «Administrar» (`/admin`), introduce `ADMIN_TOKEN` y pulsa «Ver peticiones». Puedes leer todas las páginas y aprobar o rechazar cada envío. La clave permanece en memoria. La bandeja y el contenido pendiente solo se pueden consultar con la clave. No se envían avisos por correo: pulsa «Actualizar peticiones» para comprobar si llegaron más.
 
@@ -49,7 +49,7 @@ Despliega con `npm ci`, `npm run build`, `npm start`, HTTPS y un volumen persist
 
 Desde **Storage** en el proyecto, crea y conecta un almacén **Blob privado**. Vercel añade `BLOB_READ_WRITE_TOKEN` al entorno seleccionado. Configura Production y vuelve a desplegar. Para probar escrituras en Preview, conecta un almacén privado independiente. Con esa variable, el servidor guarda los libros, ediciones, traducciones, estados y peticiones en Blob. `ADMIN_TOKEN` sigue siendo la clave para entrar en Administración.
 
-El contenido creado previamente en disco se conserva allí. Para trasladar ediciones, traducciones, libros aprobados y estados a Blob, conserva sus rutas relativas bajo el prefijo `content/`. Los envíos pendientes usan el formato `{ story, status: "pending" }` bajo `content/requests/submissions/`.
+El contenido creado previamente en disco se conserva allí. Para trasladar ediciones, traducciones, libros aprobados y estados a Blob, conserva sus rutas relativas bajo el prefijo `content/`. Los envíos pendientes usan el formato `{ story, status: "pending" }` bajo `content/requests/submissions/`. Los nuevos envíos incluyen también `acceptance` con la versión de las condiciones y la fecha de aceptación.
 
 Vercel Functions limita a 4,5 MB el cuerpo total de cada petición. En Vercel, el JSON con los TXT y la portada debe caber en ese límite.
 
@@ -58,6 +58,12 @@ Los libros importados tienen una ficha propia con portada según su género, aut
 En «Libros del catálogo» del panel de administración puedes desactivar un libro para ocultar su ficha, lector y portada; activarlo vuelve a hacerlos públicos. «Eliminar» retira el libro también del panel y requiere confirmación. El archivo no se borra físicamente: el estado se conserva en `status/`, junto a los libros y las peticiones. Incluye ese directorio en las copias de seguridad.
 
 En «Administrar → Catálogo → Editar» se pueden cambiar título, autor, género, idioma, portada y texto de cualquier libro activo o desactivado. El TXT de reemplazo es opcional. Se conservan el enlace y el estado de publicación; los cambios se guardan en `edits/` dentro del directorio de contenido. Incluye este directorio en las copias de seguridad.
+
+### Información legal en producción
+
+El pie enlaza al aviso legal, privacidad, cookies y condiciones de envío. Al cambiar las condiciones, actualiza la versión en `src/lib/legal.ts` y la fecha visible en la página. Revisa en Vercel y Cloudflare las garantías de tratamiento y los registros técnicos de la configuración de producción.
+
+Aplica los criterios de conservación de la política de privacidad también a envíos rechazados, retirados, informes de IA y copias. La opción «Eliminar» del panel solo retira la obra del sitio. Para tramitar una supresión de datos, localiza el manuscrito por su identificador y revisa también sus ediciones, traducciones, informes de IA y copias antes de confirmar el borrado.
 
 ### Revisión de envíos con Workers AI
 

@@ -532,20 +532,69 @@ p {
   letter-spacing: 1.7px;
   color: #c6d3b4;
 }
-footer {
+.site-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 35px 5%;
-  color: #79836f;
+  gap: 20px;
+  flex-wrap: wrap;
+  color: var(--muted);
 }
-footer .brand {
+.site-footer .brand {
   font-size: 24px;
   color: #c5cdbb;
 }
-footer > span {
-  font-size: 9px;
+.site-footer > span,
+.site-footer-details {
+  font-size: 0.875rem;
 }
+.site-footer-details {
+  display: grid;
+  gap: 10px;
+}
+.site-footer-details nav,
+.site-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.site-footer-details a,
+.legal-page a,
+.submission-legal a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.legal-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 44px 24px;
+  line-height: 1.65;
+}
+.legal-page h1 {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.12;
+}
+.legal-page h2 {
+  margin-top: 2rem;
+  line-height: 1.25;
+}
+.legal-page dt {
+  font-weight: bold;
+}
+.legal-page dd {
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+.legal-page li + li {
+  margin-top: 12px;
+}
+.book-workspace .submission-legal label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .empty {
   padding: 50px;
   text-align: center;
@@ -863,11 +912,7 @@ footer > span {
   .about br {
     display: none;
   }
-  footer {
-    flex-wrap: wrap;
-    gap: 25px;
-  }
-  footer > span:nth-child(2) {
+  .site-footer > span {
     display: none;
   }
   .reader-title {
