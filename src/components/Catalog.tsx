@@ -1,41 +1,43 @@
 "use client";
 import Link from "next/link";
+import { languages, type Locale } from "@/i18n/messages";
 import { useEffect, useState } from "react";
 import { type Story, progressKey, localizeStory } from "@/content/stories";
 import { LanguageSwitcher, useLanguage } from "@/i18n/LanguageProvider";
 export default function Catalog({ books }: { books: Story[] }) {
   const { locale, t } = useLanguage();
-  const upcoming = [
-    { title: t.summer, genre: "drama", art: "summer", tag: t.shortStory },
-    { title: t.city, genre: "mystery", art: "city", tag: t.novel },
-    { title: t.unsaid, genre: "romance", art: "moon", tag: t.shortStory },
-  ];
   useEffect(() => {
     document.title = `Lumbre · ${t.waiting}`;
   }, [t.waiting]);
   const [progress, setProgress] = useState(0);
   const [filter, setFilter] = useState("all");
+  const [contentLanguage, setContentLanguage] = useState<Locale | "all">("all");
   const [query, setQuery] = useState("");
-  const story = localizeStory(books[0], locale);
+  const featured = books.find((book) => book.source);
+  const story = featured && localizeStory(featured, locale);
   useEffect(() => {
+    if (!story) return;
     try {
       const n = Number(localStorage.getItem(progressKey(story.slug)));
-      if (Number.isInteger(n) && n >= 1 && n <= story.pages.length)
-        setProgress(n);
+      setProgress(
+        Number.isInteger(n) && n >= 1 && n <= story.pages.length ? n : 0,
+      );
     } catch {}
-  }, [story.slug, story.pages.length]);
+  }, [story?.slug, story?.pages.length]);
   const visibleBooks = books
-    .map((book) => localizeStory(book, locale))
+    .filter(
+      (book) =>
+        contentLanguage === "all" ||
+        Boolean(book.translations[contentLanguage]),
+    )
+    .map((book) =>
+      localizeStory(book, contentLanguage === "all" ? locale : contentLanguage),
+    )
     .filter(
       (book) =>
         (filter === "all" || filter === book.genre) &&
         book.title.toLowerCase().includes(query.toLowerCase()),
     );
-  const previews = upcoming.filter(
-    (s) =>
-      (filter === "all" || s.genre === filter) &&
-      s.title.toLowerCase().includes(query.toLowerCase()),
-  );
   return (
     <>
       <header className="header">
@@ -52,51 +54,44 @@ export default function Catalog({ books }: { books: Story[] }) {
         <LanguageSwitcher />
       </header>
       <main>
-        <section className="hero">
-          <div className="hero-art" />
-          <div className="hero-shade" />
-          <div className="hero-content">
-            <p className="eyebrow">
-              ● &nbsp; {t.featured} <span>/</span> Nº 001
-            </p>
-            <p className="hero-kicker">{t.kicker}</p>
-            <h1>
-              {t.heroStart}
-              <br />
-              {t.heroEnd} <em>{t.heroEmphasis}</em>
-            </h1>
-            <p className="hero-description">
-              {t.descriptionStart}
-              <br />
-              {t.descriptionEnd}
-            </p>
-            <div className="metadata">
-              <span>{t.fantasy}</span>
-              <i />
-              {story.pages.length} {t.pages}
-              <i />
-              {t.free}
+        {story && (
+          <section className="hero">
+            <div className="hero-art" />
+            <div className="hero-shade" />
+            <div className="hero-content">
+              <p className="eyebrow">
+                ● &nbsp; {t.featured} <span>/</span> Nº 001
+              </p>
+              <p className="hero-kicker">{story.collection}</p>
+              <h1 lang={story.contentLocale}>{story.title}</h1>
+              <div className="metadata">
+                <span>{t.fantasy}</span>
+                <i />
+                {story.pages.length} {t.pages}
+                <i />
+                {t.free}
+              </div>
+              <div className="hero-actions">
+                <Link className="button primary" href={`/leer/${story.slug}`}>
+                  ▸ &nbsp; {progress ? t.continue : t.start}
+                  <span>↗</span>
+                </Link>
+                <a className="text-button" href="#biblioteca">
+                  {t.exploreLibrary} ↓
+                </a>
+              </div>
+              <p className="hero-footnote">{t.footnote}</p>
             </div>
-            <div className="hero-actions">
-              <Link className="button primary" href={`/leer/${story.slug}`}>
-                ▸ &nbsp; {progress ? t.continue : t.start}
-                <span>↗</span>
-              </Link>
-              <a className="text-button" href="#biblioteca">
-                {t.exploreLibrary} ↓
-              </a>
+            <div className="hero-caption">
+              <span>{t.authorLabel}</span>
+              <strong>{story.author}</strong>
             </div>
-            <p className="hero-footnote">{t.footnote}</p>
-          </div>
-          <div className="hero-caption">
-            <span>{t.original}</span>
-            <strong>J. López</strong>
-          </div>
-          <div className="hero-counter">
-            01 <span>/ 01</span>
-            <div />
-          </div>
-        </section>
+            <div className="hero-counter">
+              01 <span>/ 01</span>
+              <div />
+            </div>
+          </section>
+        )}
         <section id="biblioteca" className="library">
           <div className="section-heading">
             <div>
@@ -107,8 +102,7 @@ export default function Catalog({ books }: { books: Story[] }) {
               </h2>
             </div>
             <span className="library-count">
-              {t.library} &nbsp;{" "}
-              {String(books.length + upcoming.length).padStart(2, "0")}
+              {t.library} &nbsp; {String(books.length).padStart(2, "0")}
             </span>
           </div>
           <div className="library-toolbar">
@@ -126,41 +120,43 @@ export default function Catalog({ books }: { books: Story[] }) {
                 ),
               )}
             </div>
-            <label className="search">
-              <span>⌕</span>
-              <input
-                aria-label={t.search}
-                placeholder={t.searchPlaceholder}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </label>
+            <div className="library-search-controls">
+              <label className="library-language">
+                {t.filterLanguage}
+                <select
+                  value={contentLanguage}
+                  onChange={(e) =>
+                    setContentLanguage(e.target.value as Locale | "all")
+                  }
+                >
+                  <option value="all">{t.allLanguages}</option>
+                  {Object.entries(languages).map(([key, name]) => (
+                    <option key={key} value={key}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="search">
+                <span>⌕</span>
+                <input
+                  aria-label={t.search}
+                  placeholder={t.searchPlaceholder}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </label>
+            </div>
           </div>
           <div className="story-grid">
             {visibleBooks.map((book) => (
               <BookCard key={book.slug} book={book} />
             ))}
-            {previews.map((s) => (
-              <article className="story-card upcoming" key={s.title}>
-                <div className={`cover ${s.art}`}>
-                  <span className="cover-tag soon">{t.soon}</span>
-                  <div className="cover-type">
-                    <small>{s.tag} · J. LÓPEZ</small>
-                    <h3>{s.title}</h3>
-                    <span>{t.coming}</span>
-                  </div>
-                </div>
-                <div className="card-meta">
-                  <span>{t[s.genre as "drama" | "mystery" | "romance"]}</span>
-                  <span>{t.writing}</span>
-                </div>
-                <h3>{s.title}</h3>
-                <p>{t.patience}</p>
-              </article>
-            ))}
           </div>
-          {!visibleBooks.length && !previews.length && (
-            <p className="empty">{t.empty}</p>
+          {!visibleBooks.length && (
+            <p className="empty" role="status">
+              {t.empty}
+            </p>
           )}
           <div className="library-bottom">
             <span>{t.rhythm}</span>
@@ -219,7 +215,8 @@ function BookCard({ book }: { book: ReturnType<typeof localizeStory> }) {
   }[genre];
   return (
     <Link href={`/leer/${book.slug}`} className="story-card">
-      <div className={`cover ${art}`}>
+      <div className={`cover ${art} ${book.cover ? "uploaded-cover" : ""}`}>
+        {book.cover && <img src={book.cover} alt="" loading="lazy" />}
         <span className="cover-tag">{t.available}</span>
         <div className="cover-type">
           <small>{book.author}</small>

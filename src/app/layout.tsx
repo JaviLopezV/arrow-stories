@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s · Lumbre",
   },
   description:
-    "Un refugio para los que se pierden entre páginas. Historias originales, abiertas y sin registro.",
+    "Un refugio para los que se pierden entre páginas. Cuentos y relatos abiertos, sin registro.",
 };
 export default function Layout({
   children,

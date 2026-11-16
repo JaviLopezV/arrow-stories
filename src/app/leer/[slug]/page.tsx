@@ -20,5 +20,5 @@ export default async function Page({
   const { slug } = await params;
   const story = await getStoredStory(slug);
   if (!story) notFound();
-  return <Reader story={story} />;
+  return <Reader story={{ ...story, cover: undefined }} />;
 }

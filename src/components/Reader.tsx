@@ -103,6 +103,12 @@ export default function Reader({ story: source }: { story: Story }) {
           </p>
         )}
         <p className="eyebrow">{story.author}</p>
+        {story.source && (
+          <p className="translation-notice">
+            <a href={story.source}>{t.sourceLabel}</a>
+            {story.credit && <> · {story.credit}</>}
+          </p>
+        )}
         <h1>{story.title}</h1>
         <div className="chapter">
           <span />

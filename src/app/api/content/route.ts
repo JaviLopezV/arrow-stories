@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorized, sameOrigin } from "@/lib/admin-auth";
-import { getStory } from "@/content/stories";
+import { getStory } from "@/content/built-in-stories";
 import { languages, type Locale } from "@/i18n/messages";
 import { parseTxt, MAX_TXT_BYTES } from "@/lib/import-txt";
-import { publish, readPublished, restore } from "@/lib/content-store";
+import {
+  bookStatus,
+  publish,
+  readPublished,
+  restore,
+} from "@/lib/content-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function selection(request: NextRequest) {
@@ -20,7 +25,10 @@ export async function GET(request: NextRequest) {
       { error: "Libro o idioma no válido." },
       { status: 400 },
     );
-  const content = await readPublished(selected.slug, selected.locale);
+  const content =
+    (await bookStatus(selected.slug)) === "active"
+      ? await readPublished(selected.slug, selected.locale)
+      : null;
   return NextResponse.json(
     { content },
     { headers: { "Cache-Control": "no-store" } },

@@ -4,6 +4,10 @@ import {
   getPendingBook,
   listPendingBooks,
   reviewBook,
+  listStories,
+  bookStatus,
+  manageBook,
+  getStoredStory,
 } from "@/lib/content-store";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +25,12 @@ export async function GET(request: NextRequest) {
     );
   const slug = request.nextUrl.searchParams.get("slug");
   if (slug !== null) {
+    if (request.nextUrl.searchParams.get("action") === "edit") {
+      const book = await getStoredStory(slug, true);
+      return book && (await bookStatus(slug)) !== "deleted"
+        ? json({ book })
+        : json({ error: "El libro no está disponible para editar." }, 404);
+    }
     const book = await getPendingBook(slug);
     return book
       ? json({ book })
@@ -31,7 +41,18 @@ export async function GET(request: NextRequest) {
     const book = await getPendingBook(slug);
     if (book) requests.push({ slug, title: book.title, author: book.author });
   }
-  return json({ requests });
+  const books = [];
+  for (const book of await listStories(true)) {
+    const status = await bookStatus(book.slug);
+    if (status !== "deleted")
+      books.push({
+        slug: book.slug,
+        title: book.title,
+        author: book.author,
+        status,
+      });
+  }
+  return json({ requests, books });
 }
 export async function POST(request: NextRequest) {
   if (!authorized(request))
@@ -42,6 +63,15 @@ export async function POST(request: NextRequest) {
   if (!sameOrigin(request)) return json({ error: "Origen no permitido." }, 403);
   const slug = request.nextUrl.searchParams.get("slug") || "";
   const decision = request.nextUrl.searchParams.get("decision");
+  const action = request.nextUrl.searchParams.get("action");
+  if (action === "activate" || action === "deactivate" || action === "delete") {
+    if (!(await manageBook(slug, action)))
+      return json(
+        { error: "El libro ya no está disponible para gestionar." },
+        409,
+      );
+    return json({ managed: true });
+  }
   if (decision !== "approve" && decision !== "reject")
     return json({ error: "Decisión no válida." }, 400);
   if (!(await reviewBook(slug, decision === "approve")))
