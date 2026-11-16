@@ -1294,3 +1294,8 @@ footer > span {
 .book-workspace input[type="checkbox"] {
   accent-color: #35483a;
 }
+
+.ai-review-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

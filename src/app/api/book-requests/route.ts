@@ -10,6 +10,9 @@ import {
   getStoredStory,
 } from "@/lib/content-store";
 
+import { AiReviewError, getAiReview, reviewWithAi } from "@/lib/ai-review";
+
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 function json(body: unknown, status = 200) {
   return NextResponse.json(body, {
@@ -33,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
     const book = await getPendingBook(slug);
     return book
-      ? json({ book })
+      ? json({ book, aiReview: await getAiReview(book) })
       : json({ error: "La petición ya no está pendiente." }, 404);
   }
   const requests = [];
@@ -64,6 +67,17 @@ export async function POST(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug") || "";
   const decision = request.nextUrl.searchParams.get("decision");
   const action = request.nextUrl.searchParams.get("action");
+  if (action === "ai-review") {
+    const book = await getPendingBook(slug);
+    if (!book) return json({ error: "La petición ya no está pendiente." }, 404);
+    try {
+      return json({ aiReview: await reviewWithAi(book) });
+    } catch (error) {
+      if (error instanceof AiReviewError)
+        return json({ error: error.message }, error.status);
+      throw error;
+    }
+  }
   if (action === "activate" || action === "deactivate" || action === "delete") {
     if (!(await manageBook(slug, action)))
       return json(

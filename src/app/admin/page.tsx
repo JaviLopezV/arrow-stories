@@ -17,6 +17,11 @@ export default function Admin() {
   const [section, setSection] = useState<"catalog" | "requests">("catalog");
   const [queryText, setQueryText] = useState("");
   const [book, setBook] = useState<Story | null>(null);
+  const [aiReview, setAiReview] = useState<{
+    text: string;
+    partial: boolean;
+  } | null>(null);
+  const [reviewingWithAi, setReviewingWithAi] = useState(false);
   const [reviewLocale, setReviewLocale] = useState<Locale>("es");
   const [page, setPage] = useState(0);
   const [notice, setNotice] = useState("");
@@ -27,10 +32,11 @@ export default function Admin() {
   async function act(
     slug?: string,
     decision?: "approve" | "reject",
-    action?: Action | "edit",
+    action?: Action | "edit" | "ai-review",
   ) {
     if (action === "edit") setEditing(null);
     setBusy(true);
+    setReviewingWithAi(action === "ai-review");
     setNotice("");
     const query = new URLSearchParams();
     if (slug) query.set("slug", slug);
@@ -44,7 +50,10 @@ export default function Admin() {
       });
       const result = await response.json();
       if (!response.ok) {
-        if (!action && (response.status === 404 || response.status === 409)) {
+        if (
+          (!action || action === "ai-review") &&
+          (response.status === 404 || response.status === 409)
+        ) {
           setEntries(
             (items) => items?.filter((item) => item.slug !== slug) ?? null,
           );
@@ -54,6 +63,8 @@ export default function Admin() {
       }
       if (action === "edit") {
         setEditing(result.book);
+      } else if (action === "ai-review") {
+        setAiReview(result.aiReview);
       } else if (action) {
         setBooks((items) =>
           action === "delete"
@@ -94,6 +105,7 @@ export default function Admin() {
         );
       } else if (slug) {
         setBook(result.book);
+        setAiReview(result.aiReview ?? null);
         setReviewLocale(result.book.originalLocale ?? "es");
         setPage(0);
       } else {
@@ -107,6 +119,7 @@ export default function Admin() {
       setNotice((error as Error).message);
     } finally {
       setBusy(false);
+      setReviewingWithAi(false);
     }
   }
 
@@ -151,7 +164,12 @@ export default function Admin() {
         </button>
       </form>
       <p role="status" className="workspace-notice">
-        {notice || (busy ? "Cargando…" : "")}
+        {notice ||
+          (reviewingWithAi
+            ? "Revisando el manuscrito con IA…"
+            : busy
+              ? "Cargando…"
+              : "")}
       </p>
       {entries && (
         <nav
@@ -356,6 +374,23 @@ export default function Admin() {
               <p key={index}>{paragraph}</p>
             ))}
           </article>
+          {aiReview ? (
+            <article className="admin-preview">
+              <h3>Informe de revisión con IA</h3>
+              <p>
+                Manuscrito principal · {languages[book?.originalLocale ?? "es"]}
+                {aiReview.partial ? " · Revisión parcial del comienzo" : ""}
+              </p>
+              <p className="ai-review-text">{aiReview.text}</p>
+            </article>
+          ) : (
+            <button
+              disabled={busy}
+              onClick={() => void act(story.slug, undefined, "ai-review")}
+            >
+              {reviewingWithAi ? "Revisando con IA…" : "Revisar con IA"}
+            </button>
+          )}
           <p>
             Al aprobar, el libro aparecerá en la biblioteca para todos los
             lectores.

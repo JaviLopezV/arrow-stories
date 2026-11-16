@@ -58,3 +58,9 @@ Los libros importados tienen una ficha propia con portada según su género, aut
 En «Libros del catálogo» del panel de administración puedes desactivar un libro para ocultar su ficha, lector y portada; activarlo vuelve a hacerlos públicos. «Eliminar» retira el libro también del panel y requiere confirmación. El archivo no se borra físicamente: el estado se conserva en `status/`, junto a los libros y las peticiones. Incluye ese directorio en las copias de seguridad.
 
 En «Administrar → Catálogo → Editar» se pueden cambiar título, autor, género, idioma, portada y texto de cualquier libro activo o desactivado. El TXT de reemplazo es opcional. Se conservan el enlace y el estado de publicación; los cambios se guardan en `edits/` dentro del directorio de contenido. Incluye este directorio en las copias de seguridad.
+
+### Revisión de envíos con Workers AI
+
+En Workers AI, usa **Use REST API** para crear un token de Workers AI y copiar el ID de cuenta. Configura `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` en Vercel (o en `.env.local` para probar en local). Guarda el token como variable sensible y vuelve a desplegar cuando esté configurado.
+
+En **Administración → Envíos**, abre una historia pendiente y pulsa **Revisar con IA**. Cloudflare recibe el título y el texto del manuscrito principal. En manuscritos de más de 48.000 caracteres se revisa el comienzo y el panel lo indica. El informe se guarda en el almacenamiento privado de contenido y el administrador toma la decisión de publicar o rechazar. Con Workers Free, el servicio aplica una cuota diaria.
