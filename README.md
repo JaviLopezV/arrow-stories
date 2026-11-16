@@ -29,7 +29,7 @@ El cambio de idioma conserva el número de página. Mantén alineadas las págin
 
 ## Publicación de TXT para todos
 
-Abre «Enviar un libro» (`/enviar`), introduce título, autor, género e idioma y sube un TXT UTF-8 de hasta 2 MB. Puedes adjuntar una portada JPG, PNG o WebP de hasta 1 MB; si no la adjuntas, se usa una portada por género. Tras revisar la vista previa, pulsa «Enviar para revisión». No se necesita cuenta ni clave y el libro aún no es público.
+Abre «Enviar un libro» (`/enviar`), introduce título, autor, género e idioma y sube un TXT UTF-8 de hasta 2 MB. Para publicar varias versiones juntas, marca «Multiidioma», elige el idioma principal y los adicionales y adjunta un TXT por cada idioma. Se envían en una sola petición, se pueden revisar por separado y se publican como un único libro. Puedes adjuntar una portada JPG, PNG o WebP de hasta 1 MB; si no la adjuntas, se usa una portada por género. Tras revisar la vista previa, pulsa «Enviar para revisión». No se necesita cuenta ni clave y el libro aún no es público.
 
 En «Administrar» (`/admin`), introduce `ADMIN_TOKEN` y pulsa «Ver peticiones». Puedes leer todas las páginas y aprobar o rechazar cada envío. La clave permanece en memoria. La bandeja y el contenido pendiente solo se pueden consultar con la clave. No se envían avisos por correo: pulsa «Actualizar peticiones» para comprobar si llegaron más.
 
@@ -43,7 +43,7 @@ Copia `.env.example` a `.env.local` y define `ADMIN_TOKEN` con una clave aleator
 
 Define `CONTENT_DIRECTORY` con la ruta absoluta de un volumen persistente con permisos de escritura para Node.js. Los libros nuevos se guardan como JSON en el subdirectorio `books/`, mediante escritura atómica; las importaciones antiguas por idioma se siguen leyendo. Haz copias de seguridad de este directorio. Si hay varias instancias, todas deben compartir el mismo volumen; cada libro nuevo tiene su propio archivo con identificador único.
 
-Despliega con `npm ci`, `npm run build`, `npm start`, HTTPS y un volumen persistente. Este almacenamiento no es adecuado para discos efímeros ni funciones serverless: para esos alojamientos se debe conectar una base de datos u objetos persistentes antes de publicar. Configura en el proxy un límite de petición de 14 MB para admitir el envoltorio JSON del TXT y la portada y limita tanto los intentos de acceso como los envíos públicos a `POST /api/books/` para evitar spam y consumo de disco. El servidor comprueba por separado el límite de 2 MB del texto.
+Despliega con `npm ci`, `npm run build`, `npm start`, HTTPS y un volumen persistente. Este almacenamiento no es adecuado para discos efímeros ni funciones serverless: para esos alojamientos se debe conectar una base de datos u objetos persistentes antes de publicar. Configura en el proxy un límite de petición de 40 MB para admitir el envoltorio JSON de hasta tres TXT y la portada y limita tanto los intentos de acceso como los envíos públicos a `POST /api/books/` para evitar spam y consumo de disco. El servidor comprueba por separado el límite de 2 MB por TXT.
 
 Los libros importados tienen una ficha propia con portada según su género, autor, páginas y progreso de lectura independiente. Aparecen en búsquedas y filtros sin recompilar.
 

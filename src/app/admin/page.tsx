@@ -3,7 +3,7 @@ import BookForm from "@/components/BookForm";
 import Link from "next/link";
 import { useState } from "react";
 import { localizeStory, type Story } from "@/content/stories";
-import { languages } from "@/i18n/messages";
+import { languages, type Locale } from "@/i18n/messages";
 
 type Entry = Pick<Story, "slug" | "title" | "author">;
 type ManagedBook = Entry & { status: "active" | "inactive" };
@@ -17,10 +17,11 @@ export default function Admin() {
   const [section, setSection] = useState<"catalog" | "requests">("catalog");
   const [queryText, setQueryText] = useState("");
   const [book, setBook] = useState<Story | null>(null);
+  const [reviewLocale, setReviewLocale] = useState<Locale>("es");
   const [page, setPage] = useState(0);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const story = book && localizeStory(book, book.originalLocale ?? "es");
+  const story = book && localizeStory(book, reviewLocale);
   const current = story?.pages[page];
 
   async function act(
@@ -93,6 +94,7 @@ export default function Admin() {
         );
       } else if (slug) {
         setBook(result.book);
+        setReviewLocale(result.book.originalLocale ?? "es");
         setPage(0);
       } else {
         setEditing(null);
@@ -314,6 +316,27 @@ export default function Admin() {
             {story.author} · {languages[story.contentLocale]} ·{" "}
             {story.pages.length} páginas
           </p>
+          {book && Object.keys(book.translations).length > 1 && (
+            <label>
+              Idioma del manuscrito
+              <select
+                value={reviewLocale}
+                onChange={(event) => {
+                  setReviewLocale(event.target.value as Locale);
+                  setPage(0);
+                }}
+              >
+                {(Object.keys(book.translations) as Locale[]).map((item) => (
+                  <option key={item} value={item}>
+                    {languages[item]}
+                    {item === (book.originalLocale ?? "es")
+                      ? " (principal)"
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Página
             <select
@@ -327,7 +350,7 @@ export default function Admin() {
               ))}
             </select>
           </label>
-          <article className="admin-preview">
+          <article className="admin-preview" lang={story.contentLocale}>
             <h3>{current.chapter}</h3>
             {current.paragraphs.map((paragraph, index) => (
               <p key={index}>{paragraph}</p>

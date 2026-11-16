@@ -1,3 +1,4 @@
+import type { StoryTranslation } from "@/content/stories";
 import { MAX_COVER_BYTES, validateCover } from "@/lib/book-cover";
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
@@ -50,8 +51,9 @@ async function writeBook(
     author: string,
     genre: string,
     locale: Locale,
-    content,
+    content: StoryTranslation | undefined,
     cover: string | undefined;
+  const submittedTranslations: Partial<Record<Locale, StoryTranslation>> = {};
   try {
     const chunks: Uint8Array[] = [];
     let size = 0;
@@ -61,7 +63,9 @@ async function writeBook(
       size += value.length;
       if (
         size >
-        MAX_TXT_BYTES * 6 + Math.ceil(MAX_COVER_BYTES / 3) * 4 + 4096
+        MAX_TXT_BYTES * 6 * (existing ? 1 : Object.keys(languages).length) +
+          Math.ceil(MAX_COVER_BYTES / 3) * 4 +
+          4096
       ) {
         await reader.cancel();
         return NextResponse.json(
@@ -93,7 +97,10 @@ async function writeBook(
       !Object.hasOwn(languages, body.locale)
     )
       throw new Error("Selecciona un idioma válido.");
-    if ((!existing || body.text !== undefined) && typeof body.text !== "string")
+    if (
+      (body.text !== undefined || (!existing && body.texts === undefined)) &&
+      typeof body.text !== "string"
+    )
       throw new Error("Falta el texto del libro.");
     cover =
       body.cover === undefined ? existing?.cover : validateCover(body.cover);
@@ -101,8 +108,39 @@ async function writeBook(
     author = body.author.trim();
     genre = body.genre;
     locale = body.locale;
-    content =
-      typeof body.text === "string" ? parseTxt(body.text, title) : undefined;
+    if (body.texts !== undefined) {
+      if (
+        existing ||
+        body.text !== undefined ||
+        !body.texts ||
+        typeof body.texts !== "object" ||
+        Array.isArray(body.texts)
+      )
+        throw new Error("Las versiones del manuscrito no son válidas.");
+      const entries = Object.entries(body.texts);
+      if (entries.length < 2 || !Object.hasOwn(body.texts, locale))
+        throw new Error(
+          "Adjunta un TXT para el idioma principal y al menos otro idioma.",
+        );
+      for (const [key, value] of entries) {
+        if (!Object.hasOwn(languages, key) || typeof value !== "string")
+          throw new Error("Cada versión necesita un TXT y un idioma válido.");
+        const language = key as Locale;
+        try {
+          submittedTranslations[language] = parseTxt(value, title, language);
+        } catch (error) {
+          throw new Error(
+            `${languages[language]}: ${(error as Error).message}`,
+          );
+        }
+      }
+      content = submittedTranslations[locale];
+    } else {
+      content =
+        typeof body.text === "string"
+          ? parseTxt(body.text, title, locale)
+          : undefined;
+    }
   } catch (error) {
     return NextResponse.json(
       {
@@ -169,7 +207,7 @@ async function writeBook(
       genre,
       cover,
       originalLocale: locale,
-      translations: { [locale]: content },
+      translations: { ...submittedTranslations, [locale]: content },
     });
     return NextResponse.json(
       { slug, title, pages: content.pages.length },

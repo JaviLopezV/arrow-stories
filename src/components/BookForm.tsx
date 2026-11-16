@@ -5,6 +5,9 @@ import { MAX_TXT_BYTES, parseTxt } from "@/lib/import-txt";
 import { localizeStory, type Story } from "@/content/stories";
 import { languages, type Locale } from "@/i18n/messages";
 
+type Upload = { text: string; name: string };
+const localeOptions = Object.keys(languages) as Locale[];
+
 export default function BookForm({
   book,
   token,
@@ -21,20 +24,39 @@ export default function BookForm({
   const [genre, setGenre] = useState(book?.genre ?? "fantasy");
   const [locale, setLocale] = useState<Locale>(book?.originalLocale ?? "es");
   const [cover, setCover] = useState(book?.cover ?? "");
-  const [upload, setUpload] = useState<{ text: string; name: string }>();
+  const [upload, setUpload] = useState<Upload>();
+  const [multi, setMulti] = useState(false);
+  const [additional, setAdditional] = useState<Locale[]>([]);
+  const [uploads, setUploads] = useState<Partial<Record<Locale, Upload>>>({});
+  const [previewLocale, setPreviewLocale] = useState<Locale>();
+  const selected = [locale, ...additional.filter((item) => item !== locale)];
+  const available = multi ? selected.filter((item) => uploads[item]) : [];
+  const readingLocale =
+    previewLocale && available.includes(previewLocale)
+      ? previewLocale
+      : (available[0] ?? locale);
+  const readingUpload = multi ? uploads[readingLocale] : upload;
+  const readyToSend = multi
+    ? selected.length >= 2 && selected.every((item) => uploads[item])
+    : Boolean(upload);
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const preview = useMemo(
     () =>
-      upload
-        ? parseTxt(upload.text, "")
+      readingUpload
+        ? parseTxt(readingUpload.text, "", readingLocale)
         : book && localizeStory(book, book.originalLocale ?? "es"),
-    [upload, book],
+    [readingUpload, book, readingLocale],
   );
-  const current = preview?.pages[page];
+  const current =
+    preview?.pages[Math.min(page, (preview?.pages.length ?? 1) - 1)];
 
-  async function pick(input: HTMLInputElement, image: boolean) {
+  async function pick(
+    input: HTMLInputElement,
+    image: boolean,
+    language?: Locale,
+  ) {
     const file = input.files?.[0];
     input.value = "";
     if (!file) return;
@@ -67,7 +89,13 @@ export default function BookForm({
         parseTxt(text, title);
         if (!title.trim())
           setTitle(file.name.slice(0, -4).replace(/[-_]/g, " ").slice(0, 160));
-        setUpload({ text, name: file.name });
+        if (language) {
+          setUploads((files) => ({
+            ...files,
+            [language]: { text, name: file.name },
+          }));
+          setPreviewLocale(language);
+        } else setUpload({ text, name: file.name });
         setPage(0);
       }
     } catch (e) {
@@ -82,7 +110,7 @@ export default function BookForm({
   }
 
   async function save() {
-    if ((!book && !upload) || busy) return;
+    if ((!book && !readyToSend) || busy) return;
     setBusy(true);
     setError("");
     try {
@@ -101,7 +129,12 @@ export default function BookForm({
             author,
             genre,
             locale,
-            text: upload?.text,
+            text: multi ? undefined : upload?.text,
+            texts: multi
+              ? Object.fromEntries(
+                  selected.map((item) => [item, uploads[item]?.text]),
+                )
+              : undefined,
             cover: cover === book?.cover ? undefined : cover,
           }),
         },
@@ -163,10 +196,16 @@ export default function BookForm({
                   </select>
                 </label>
                 <label>
-                  Idioma del contenido
+                  {multi ? "Idioma principal" : "Idioma del contenido"}
                   <select
                     value={locale}
-                    onChange={(e) => setLocale(e.target.value as Locale)}
+                    onChange={(e) => {
+                      const next = e.target.value as Locale;
+                      if (multi)
+                        setAdditional(selected.filter((item) => item !== next));
+                      setLocale(next);
+                      setPage(0);
+                    }}
                   >
                     {Object.entries(languages).map(([key, name]) => (
                       <option key={key} value={key}>
@@ -176,6 +215,47 @@ export default function BookForm({
                   </select>
                 </label>
               </div>
+              {!book && (
+                <label className="book-multi-option">
+                  <input
+                    type="checkbox"
+                    checked={multi}
+                    onChange={(e) => {
+                      setMulti(e.target.checked);
+                      setPage(0);
+                    }}
+                  />
+                  Multiidioma
+                </label>
+              )}
+              {multi && (
+                <div
+                  role="group"
+                  aria-label="Idiomas adicionales"
+                  className="book-language-options"
+                >
+                  <p>Idiomas adicionales</p>
+                  {localeOptions
+                    .filter((item) => item !== locale)
+                    .map((item) => (
+                      <label key={item}>
+                        <input
+                          type="checkbox"
+                          checked={additional.includes(item)}
+                          onChange={(e) => {
+                            setAdditional((items) =>
+                              e.target.checked
+                                ? [...items, item]
+                                : items.filter((key) => key !== item),
+                            );
+                            setPage(0);
+                          }}
+                        />
+                        {languages[item]}
+                      </label>
+                    ))}
+                </div>
+              )}
             </section>
             <section className="admin-panel">
               <p className="eyebrow">02 · MANUSCRITO</p>
@@ -183,29 +263,74 @@ export default function BookForm({
               <p>
                 {book
                   ? "Si no adjuntas un TXT nuevo, se conserva el texto actual."
-                  : "Usa un TXT en UTF-8 de hasta 2 MB."}
+                  : multi
+                    ? "Adjunta un TXT en UTF-8 de hasta 2 MB por cada idioma seleccionado."
+                    : "Usa un TXT en UTF-8 de hasta 2 MB."}
               </p>
-              <label className="book-upload">
-                {book ? "Reemplazar texto (opcional)" : "Archivo TXT"}
-                <input
-                  type="file"
-                  accept=".txt,text/plain"
-                  onChange={(e) => void pick(e.currentTarget, false)}
-                />
-              </label>
-              {upload && (
-                <div className="book-actions">
-                  <span>{upload.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUpload(undefined);
-                      setPage(0);
-                    }}
-                  >
-                    Quitar TXT
-                  </button>
-                </div>
+              {multi ? (
+                <>
+                  {selected.length < 2 && (
+                    <p>Selecciona al menos un idioma adicional.</p>
+                  )}
+                  {selected.map((item) => (
+                    <div key={item}>
+                      <label className="book-upload">
+                        TXT · {languages[item]}
+                        {item === locale && " (principal)"}
+                        <input
+                          type="file"
+                          accept=".txt,text/plain"
+                          onChange={(e) =>
+                            void pick(e.currentTarget, false, item)
+                          }
+                        />
+                      </label>
+                      {uploads[item] && (
+                        <div className="book-actions">
+                          <span>{uploads[item]?.name}</span>
+                          <button
+                            type="button"
+                            aria-label={`Quitar TXT en ${languages[item]}`}
+                            onClick={() => {
+                              setUploads((files) => ({
+                                ...files,
+                                [item]: undefined,
+                              }));
+                              setPage(0);
+                            }}
+                          >
+                            Quitar TXT
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <label className="book-upload">
+                    {book ? "Reemplazar texto (opcional)" : "Archivo TXT"}
+                    <input
+                      type="file"
+                      accept=".txt,text/plain"
+                      onChange={(e) => void pick(e.currentTarget, false)}
+                    />
+                  </label>
+                  {upload && (
+                    <div className="book-actions">
+                      <span>{upload.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUpload(undefined);
+                          setPage(0);
+                        }}
+                      >
+                        Quitar TXT
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
               <details>
                 <summary>Formato del TXT</summary>
@@ -250,10 +375,28 @@ export default function BookForm({
         {preview && current && (
           <details className="admin-panel book-preview" open>
             <summary>Vista previa · {preview.pages.length} páginas</summary>
+            {multi && (
+              <label>
+                Idioma de la vista previa
+                <select
+                  value={readingLocale}
+                  onChange={(e) => {
+                    setPreviewLocale(e.target.value as Locale);
+                    setPage(0);
+                  }}
+                >
+                  {available.map((item) => (
+                    <option key={item} value={item}>
+                      {languages[item]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label>
               Página
               <select
-                value={page}
+                value={Math.min(page, preview.pages.length - 1)}
                 onChange={(e) => setPage(Number(e.target.value))}
               >
                 {preview.pages.map((item, index) => (
@@ -263,7 +406,12 @@ export default function BookForm({
                 ))}
               </select>
             </label>
-            <article className="admin-preview" lang={locale}>
+            <article
+              className="admin-preview"
+              lang={
+                readingUpload ? readingLocale : (book?.originalLocale ?? "es")
+              }
+            >
               <h3>{current.chapter}</h3>
               {current.paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>
@@ -289,7 +437,9 @@ export default function BookForm({
             <button
               type="submit"
               className="button primary"
-              disabled={!title.trim() || !author.trim() || (!book && !upload)}
+              disabled={
+                !title.trim() || !author.trim() || (!book && !readyToSend)
+              }
             >
               {book ? "Guardar cambios" : "Enviar para revisión"}
             </button>

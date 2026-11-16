@@ -1,6 +1,11 @@
 import type { StoryTranslation } from "@/content/stories";
+import { messages, type Locale } from "@/i18n/messages";
 export const MAX_TXT_BYTES = 2 * 1024 * 1024;
-export function parseTxt(text: string, title: string): StoryTranslation {
+export function parseTxt(
+  text: string,
+  title: string,
+  locale: Locale = "es",
+): StoryTranslation {
   if (new TextEncoder().encode(text).length > MAX_TXT_BYTES)
     throw new Error("El archivo supera los 2 MB.");
   text = text
@@ -10,7 +15,7 @@ export function parseTxt(text: string, title: string): StoryTranslation {
   if (!text || /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(text))
     throw new Error("El archivo debe contener texto plano UTF-8 válido.");
   const pages: StoryTranslation["pages"] = [];
-  let chapter = "Capítulo 1",
+  let chapter = `${messages[locale].chapter} 1`,
     paragraphs: string[] = [],
     words = 0,
     buffer: string[] = [];
