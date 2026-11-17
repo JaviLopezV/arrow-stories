@@ -19,6 +19,7 @@ export default function Catalog({ books }: { books: Story[] }) {
   const [progress, setProgress] = useState(0);
   const [filter, setFilter] = useState("all");
   const [contentLanguage, setContentLanguage] = useState<Locale | "all">("all");
+  const [author, setAuthor] = useState("");
   const [query, setQuery] = useState("");
   useEffect(() => {
     function updateLastRead() {
@@ -53,11 +54,15 @@ export default function Catalog({ books }: { books: Story[] }) {
       setProgress(0);
     }
   }, [story?.slug, story?.pages.length]);
+  const authors = [...new Set(books.map((book) => book.author))].sort((a, b) =>
+    a.localeCompare(b, locale),
+  );
   const visibleBooks = books
     .filter(
       (book) =>
-        contentLanguage === "all" ||
-        Boolean(book.translations[contentLanguage]),
+        (author === "" || book.author === author) &&
+        (contentLanguage === "all" ||
+          Boolean(book.translations[contentLanguage])),
     )
     .map((book) =>
       localizeStory(book, contentLanguage === "all" ? locale : contentLanguage),
@@ -150,6 +155,20 @@ export default function Catalog({ books }: { books: Story[] }) {
               </select>
             </label>
             <div className="library-search-controls">
+              <label className="library-language">
+                {t.filterAuthor}
+                <select
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                >
+                  <option value="">{t.allAuthors}</option>
+                  {authors.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="library-language">
                 {t.filterLanguage}
                 <select
