@@ -182,9 +182,6 @@ export default function Reader({ story: source }: { story: Story }) {
           <a href={`${downloadUrl}&format=txt`} download>
             {t.downloadBook} TXT
           </a>
-          <a href={`${downloadUrl}&format=pdf`} download>
-            {t.downloadBook} PDF
-          </a>
         </div>
         <div className="chapter">
           <span />

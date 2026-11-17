@@ -37,11 +37,11 @@ export default function LegalNotice() {
         respetando su autoría e integridad.
       </p>
       <p>
-        Las copias disponibles para descarga en TXT y PDF están sujetas a los
-        derechos y a la licencia de cada obra y de su traducción. La descarga
-        permite guardar una copia para leerla sin conexión. Cualquier otro uso
-        se rige por la licencia aplicable, la autorización del titular de
-        derechos o los usos permitidos por la ley.
+        Las copias disponibles para descarga en TXT están sujetas a los derechos
+        y a la licencia de cada obra y de su traducción. La descarga permite
+        guardar una copia para leerla sin conexión. Cualquier otro uso se rige
+        por la licencia aplicable, la autorización del titular de derechos o los
+        usos permitidos por la ley.
       </p>
       <h2>Comunicar una infracción</h2>
       <p>

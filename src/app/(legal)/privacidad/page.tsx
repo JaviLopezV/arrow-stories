@@ -28,10 +28,10 @@ export default function PrivacyPolicy() {
           enviarla. El título, el nombre de autor, el texto, la portada y los
           demás datos de la ficha de una obra aprobada quedan accesibles al
           público. Los campos obligatorios son necesarios para tramitar el
-          envío. Los archivos TXT y PDF descargables incluyen el título, el
-          texto, el nombre de autor o seudónimo y, cuando constan, la fuente y
-          los créditos asociados. Quien descargue un archivo puede conservarlo
-          en su dispositivo tras la retirada de la obra. En producción también
+          envío. Los archivos TXT descargables incluyen el título, el texto, el
+          nombre de autor o seudónimo y, cuando constan, la fuente y los
+          créditos asociados. Quien descargue un archivo puede conservarlo en su
+          dispositivo tras la retirada de la obra. En producción también
           registramos la versión y la fecha de aceptación de las condiciones
           para acreditar el acuerdo.
         </li>

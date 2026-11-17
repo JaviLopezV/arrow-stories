@@ -1,6 +1,6 @@
 import { localizeStory } from "@/content/stories";
 import { getStoredStory } from "@/lib/content-store";
-import { bookAsPdf, bookAsText } from "@/lib/book-download";
+import { bookAsText } from "@/lib/book-download";
 
 export async function GET(
   request: Request,
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format");
-  if (format !== "txt" && format !== "pdf") {
+  if (format !== "txt") {
     return new Response(null, { status: 400 });
   }
 
@@ -22,13 +22,9 @@ export async function GET(
       ? lang
       : (source.originalLocale ?? "es");
   const book = localizeStory(source, locale);
-  const body =
-    format === "pdf" ? new Uint8Array(await bookAsPdf(book)) : bookAsText(book);
-
-  return new Response(body, {
+  return new Response(bookAsText(book), {
     headers: {
-      "Content-Type":
-        format === "pdf" ? "application/pdf" : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8",
       "Content-Disposition": `attachment; filename="${book.slug}-${book.contentLocale}.${format}"`,
       "Content-Language": book.contentLocale,
       "Cache-Control": "no-store",
