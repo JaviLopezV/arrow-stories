@@ -289,6 +289,68 @@ p {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 25px;
 }
+.genre-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.genre-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  height: 100%;
+  min-height: 150px;
+  padding: clamp(12px, 2vw, 24px);
+  border: 1px solid #ffffff30;
+  border-radius: 6px;
+  background-color: #233148;
+  transition: border-color 0.2s;
+}
+.genre-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(transparent, #080f1df2 75%);
+}
+.genre-card::before {
+  z-index: -2;
+}
+.genre-card:hover {
+  border-color: var(--accent);
+}
+.genre-card-copy {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.genre-card-title,
+.library-category-heading h3 {
+  font:
+    clamp(20px, 2.4vw, 32px)/1.1 Georgia,
+    serif;
+  overflow-wrap: anywhere;
+}
+.genre-card-arrow,
+.library-category-heading a {
+  color: var(--accent);
+}
+.library-category-heading {
+  margin-top: 28px;
+}
+.library-category-heading a {
+  font-size: 13px;
+}
+.library-category-heading a:hover {
+  text-decoration: underline;
+}
+.library-category-heading h3 {
+  margin: 12px 0 0;
+}
 .cover {
   aspect-ratio: 0.78;
   position: relative;

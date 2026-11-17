@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { genreCover, genres, isGenre } from "@/content/genres";
+import { useSearchParams } from "next/navigation";
+import { genreCover, isGenre } from "@/content/genres";
 import { languages, type Locale } from "@/i18n/messages";
 import { useEffect, useState } from "react";
 import {
@@ -17,7 +18,6 @@ export default function Catalog({ books }: { books: Story[] }) {
   }, [t.waiting]);
   const [lastReadSlug, setLastReadSlug] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  const [filter, setFilter] = useState("all");
   const [contentLanguage, setContentLanguage] = useState<Locale | "all">("all");
   const [author, setAuthor] = useState("");
   const [query, setQuery] = useState("");
@@ -54,24 +54,55 @@ export default function Catalog({ books }: { books: Story[] }) {
       setProgress(0);
     }
   }, [story?.slug, story?.pages.length]);
-  const authors = [...new Set(books.map((book) => book.author))].sort((a, b) =>
+  const selectedGenre = useSearchParams().get("genre");
+  const booksByGenre = new Map<string, Story[]>();
+  for (const book of books) {
+    const category = booksByGenre.get(book.genre);
+    if (category) category.push(book);
+    else booksByGenre.set(book.genre, [book]);
+  }
+
+  const categoryBooks =
+    selectedGenre === null ? undefined : booksByGenre.get(selectedGenre);
+  const categories = Array.from(booksByGenre, ([genre, entries]) => ({
+    genre,
+    label: isGenre(genre) ? t[genre] : genre,
+    count: entries.length,
+  })).sort((a, b) => a.label.localeCompare(b.label, locale));
+  const category = categories.find(({ genre }) => genre === selectedGenre);
+  const scope = categoryBooks ?? books;
+  const authors = [...new Set(scope.map((book) => book.author))].sort((a, b) =>
     a.localeCompare(b, locale),
   );
-  const visibleBooks = books
-    .filter(
-      (book) =>
-        (author === "" || book.author === author) &&
-        (contentLanguage === "all" ||
-          Boolean(book.translations[contentLanguage])),
-    )
-    .map((book) =>
-      localizeStory(book, contentLanguage === "all" ? locale : contentLanguage),
-    )
-    .filter(
-      (book) =>
-        (filter === "all" || filter === book.genre) &&
-        book.title.toLowerCase().includes(query.toLowerCase()),
-    );
+  const titleQuery = query.trim().toLocaleLowerCase(locale);
+  const showBooks = Boolean(
+    category || author || contentLanguage !== "all" || titleQuery,
+  );
+  const visibleBooks = showBooks
+    ? scope
+        .filter(
+          (book) =>
+            (author === "" || book.author === author) &&
+            (contentLanguage === "all" ||
+              Boolean(book.translations[contentLanguage])),
+        )
+        .map((book) =>
+          localizeStory(
+            book,
+            contentLanguage === "all" ? locale : contentLanguage,
+          ),
+        )
+        .filter((book) =>
+          book.title.toLocaleLowerCase(locale).includes(titleQuery),
+        )
+    : [];
+
+  function resetSearch() {
+    setAuthor("");
+    setContentLanguage("all");
+    setQuery("");
+  }
+
   return (
     <>
       <header className="header">
@@ -139,21 +170,15 @@ export default function Catalog({ books }: { books: Story[] }) {
               {t.library} &nbsp; {String(books.length).padStart(2, "0")}
             </span>
           </div>
+          {category && (
+            <div className="library-category-heading">
+              <Link href="/#biblioteca" onClick={resetSearch}>
+                <span aria-hidden="true">←</span> {t.allGenres}
+              </Link>
+              <h3>{category.label}</h3>
+            </div>
+          )}
           <div className="library-toolbar">
-            <label className="library-language">
-              {t.filter}
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              >
-                <option value="all">{t.all}</option>
-                {genres.map((item) => (
-                  <option key={item} value={item}>
-                    {t[item]}
-                  </option>
-                ))}
-              </select>
-            </label>
             <div className="library-search-controls">
               <label className="library-language">
                 {t.filterAuthor}
@@ -196,12 +221,36 @@ export default function Catalog({ books }: { books: Story[] }) {
               </label>
             </div>
           </div>
-          <div className="story-grid">
-            {visibleBooks.map((book) => (
-              <BookCard key={book.slug} book={book} />
-            ))}
-          </div>
-          {!visibleBooks.length && (
+          {showBooks ? (
+            <div className="story-grid">
+              {visibleBooks.map((book) => (
+                <BookCard key={book.slug} book={book} />
+              ))}
+            </div>
+          ) : (
+            <ul className="story-grid genre-grid" aria-label={t.allGenres}>
+              {categories.map(({ genre, label, count }) => (
+                <li key={genre}>
+                  <Link
+                    className={`genre-card ${isGenre(genre) ? genreCover[genre] : ""}`}
+                    href={`/?${new URLSearchParams({ genre })}#biblioteca`}
+                  >
+                    <span className="genre-card-copy">
+                      <span className="genre-card-title">{label}</span>
+                      <span>
+                        {count.toLocaleString(locale)}{" "}
+                        {count === 1 ? t.book : t.books}
+                      </span>
+                    </span>
+                    <span className="genre-card-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {(showBooks ? !visibleBooks.length : !categories.length) && (
             <p className="empty" role="status">
               {t.empty}
             </p>
