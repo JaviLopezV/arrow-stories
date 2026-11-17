@@ -5,4 +5,4 @@ export const siteOwner = {
   address: "Carrer Plaça Palacio Valdes 3 - Cerdanyola del Vallés, España",
 };
 
-export const submissionTermsVersion = "2026-11-16";
+export const submissionTermsVersion = "2026-11-17";

@@ -145,7 +145,12 @@ export default function BookAudio({
         </button>
         <label>
           {t.audioVoice}
-          <select ref={voiceSelect} defaultValue="" disabled={!voices.length}>
+          <select
+            ref={voiceSelect}
+            defaultValue=""
+            disabled={!voices.length}
+            aria-describedby="audio-privacy"
+          >
             <option value="">{t.audioDefaultVoice}</option>
             {voices.map((voice) => (
               <option key={voice.voiceURI} value={voice.voiceURI}>
@@ -171,6 +176,9 @@ export default function BookAudio({
           </>
         )}
       </div>
+      <p id="audio-privacy" className="book-audio-privacy">
+        {t.audioPrivacy}
+      </p>
       <div role="status">
         {playback === "unsupported" && t.audioUnsupported}
         {playback === "error" && t.audioError}

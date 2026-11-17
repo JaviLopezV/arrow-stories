@@ -28,8 +28,12 @@ export default function PrivacyPolicy() {
           enviarla. El título, el nombre de autor, el texto, la portada y los
           demás datos de la ficha de una obra aprobada quedan accesibles al
           público. Los campos obligatorios son necesarios para tramitar el
-          envío. En producción también registramos la versión y la fecha de
-          aceptación de las condiciones para acreditar el acuerdo.
+          envío. Los archivos TXT y PDF descargables incluyen el título, el
+          texto, el nombre de autor o seudónimo y, cuando constan, la fuente y
+          los créditos asociados. Quien descargue un archivo puede conservarlo
+          en su dispositivo tras la retirada de la obra. En producción también
+          registramos la versión y la fecha de aceptación de las condiciones
+          para acreditar el acuerdo.
         </li>
         <li>
           <strong>Consultas y reclamaciones.</strong> Usamos la dirección de
@@ -38,6 +42,17 @@ export default function PrivacyPolicy() {
           el cumplimiento de una obligación legal cuando corresponda.
         </li>
       </ul>
+      <h2>Lectura en voz alta</h2>
+      <p>
+        Al activar la lectura en voz alta, el lector entrega fragmentos del
+        libro al servicio de síntesis de voz del navegador o del dispositivo. Si
+        se usa una voz local, el texto se procesa en tu dispositivo. Si se usa
+        una voz remota, el navegador o el dispositivo puede enviar esos
+        fragmentos al proveedor de la voz para generar el audio. El proveedor
+        depende de la voz y de la configuración de tu navegador o dispositivo,
+        también cuando eliges la opción automática. Consulta la política de
+        privacidad de ese proveedor para conocer cómo trata la información.
+      </p>
       <h2>Alojamiento y revisión editorial</h2>
       <p>
         Vercel aloja el sitio y proporciona el almacenamiento privado de envíos

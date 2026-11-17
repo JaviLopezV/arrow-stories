@@ -707,6 +707,11 @@ p {
   max-width: 100%;
   background: var(--reader-bg);
 }
+.book-audio-privacy {
+  margin: 8px 0 0;
+  color: var(--reader-muted);
+  text-align: center;
+}
 .book-audio [role="status"]:not(:empty) {
   margin-top: 10px;
   text-align: center;

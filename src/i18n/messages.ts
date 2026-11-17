@@ -88,6 +88,8 @@ export const messages = {
     audioFromPage: "Escuchar desde la página",
     audioVoice: "Voz",
     audioDefaultVoice: "Automática",
+    audioPrivacy:
+      "Las voces remotas pueden enviar fragmentos del libro al proveedor de la voz.",
     audioPause: "Pausar audio",
     audioResume: "Reanudar audio",
     audioStop: "Detener audio",
@@ -194,6 +196,8 @@ export const messages = {
     audioFromPage: "Escolta des de la pàgina",
     audioVoice: "Veu",
     audioDefaultVoice: "Automàtica",
+    audioPrivacy:
+      "Les veus remotes poden enviar fragments del llibre al proveïdor de la veu.",
     audioPause: "Pausa l’àudio",
     audioResume: "Reprèn l’àudio",
     audioStop: "Atura l’àudio",
@@ -300,6 +304,8 @@ export const messages = {
     audioFromPage: "Listen from page",
     audioVoice: "Voice",
     audioDefaultVoice: "Automatic",
+    audioPrivacy:
+      "Remote voices may send passages from the book to the voice provider.",
     audioPause: "Pause audio",
     audioResume: "Resume audio",
     audioStop: "Stop audio",
