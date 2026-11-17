@@ -33,12 +33,25 @@ export default function BookForm({
   const [uploads, setUploads] = useState<Partial<Record<Locale, Upload>>>({});
   const [previewLocale, setPreviewLocale] = useState<Locale>();
   const selected = [locale, ...additional.filter((item) => item !== locale)];
-  const available = multi ? selected.filter((item) => uploads[item]) : [];
+  const originalLocale = book?.originalLocale ?? "es";
+  const usesLanguageUploads = Boolean(book) || multi;
+  const uploadLocales = book
+    ? [locale, ...localeOptions.filter((item) => item !== locale)]
+    : selected;
+  const available = usesLanguageUploads
+    ? uploadLocales.filter(
+        (item) =>
+          uploads[item] ||
+          (book &&
+            (item === locale ||
+              (item !== originalLocale && book.translations[item]))),
+      )
+    : [];
   const readingLocale =
     previewLocale && available.includes(previewLocale)
       ? previewLocale
       : (available[0] ?? locale);
-  const readingUpload = multi ? uploads[readingLocale] : upload;
+  const readingUpload = usesLanguageUploads ? uploads[readingLocale] : upload;
   const readyToSend = multi
     ? selected.length >= 2 && selected.every((item) => uploads[item])
     : Boolean(upload);
@@ -49,9 +62,13 @@ export default function BookForm({
   const preview = useMemo(
     () =>
       readingUpload
-        ? parseTxt(readingUpload.text, "", readingLocale)
-        : book && localizeStory(book, book.originalLocale ?? "es"),
-    [readingUpload, book, readingLocale],
+        ? parseTxt(readingUpload.text, title, readingLocale)
+        : book &&
+          localizeStory(
+            book,
+            readingLocale === locale ? originalLocale : readingLocale,
+          ),
+    [readingUpload, title, book, readingLocale, locale, originalLocale],
   );
   const current =
     preview?.pages[Math.min(page, (preview?.pages.length ?? 1) - 1)];
@@ -90,7 +107,7 @@ export default function BookForm({
         const text = new TextDecoder("utf-8", { fatal: true }).decode(
           await file.arrayBuffer(),
         );
-        parseTxt(text, title);
+        parseTxt(text, title, language ?? locale);
         if (!title.trim())
           setTitle(file.name.slice(0, -4).replace(/[-_]/g, " ").slice(0, 160));
         if (language) {
@@ -134,10 +151,13 @@ export default function BookForm({
             author,
             genre,
             locale,
-            text: multi ? undefined : upload?.text,
-            texts: multi
+            text: usesLanguageUploads ? undefined : upload?.text,
+            texts: usesLanguageUploads
               ? Object.fromEntries(
-                  selected.map((item) => [item, uploads[item]?.text]),
+                  uploadLocales.flatMap((item) => {
+                    const file = uploads[item];
+                    return file ? [[item, file.text]] : [];
+                  }),
                 )
               : undefined,
             cover: cover === book?.cover ? undefined : cover,
@@ -202,7 +222,9 @@ export default function BookForm({
                   </select>
                 </label>
                 <label>
-                  {multi ? "Idioma principal" : "Idioma del contenido"}
+                  {usesLanguageUploads
+                    ? "Idioma principal"
+                    : "Idioma del contenido"}
                   <select
                     value={locale}
                     onChange={(e) => {
@@ -214,7 +236,14 @@ export default function BookForm({
                     }}
                   >
                     {Object.entries(languages).map(([key, name]) => (
-                      <option key={key} value={key}>
+                      <option
+                        key={key}
+                        value={key}
+                        disabled={Boolean(
+                          key !== originalLocale &&
+                          book?.translations[key as Locale],
+                        )}
+                      >
                         {name}
                       </option>
                     ))}
@@ -268,21 +297,25 @@ export default function BookForm({
               <h2>{book ? "Texto del libro" : "Adjunta el cuento"}</h2>
               <p>
                 {book
-                  ? "Si no adjuntas un TXT nuevo, se conserva el texto actual."
+                  ? "Adjunta un TXT en UTF-8 para añadir una traducción o reemplazar el texto de ese idioma."
                   : multi
                     ? "Adjunta un TXT en UTF-8 de hasta 2 MB por cada idioma seleccionado."
                     : "Usa un TXT en UTF-8 de hasta 2 MB."}
               </p>
-              {multi ? (
+              {usesLanguageUploads ? (
                 <>
-                  {selected.length < 2 && (
+                  {!book && selected.length < 2 && (
                     <p>Selecciona al menos un idioma adicional.</p>
                   )}
-                  {selected.map((item) => (
+                  {uploadLocales.map((item) => (
                     <div key={item}>
                       <label className="book-upload">
                         TXT · {languages[item]}
                         {item === locale && " (principal)"}
+                        {book &&
+                          !uploads[item] &&
+                          available.includes(item) &&
+                          " · Texto guardado"}
                         <input
                           type="file"
                           accept=".txt,text/plain"
@@ -315,7 +348,7 @@ export default function BookForm({
               ) : (
                 <>
                   <label className="book-upload">
-                    {book ? "Reemplazar texto (opcional)" : "Archivo TXT"}
+                    Archivo TXT
                     <input
                       type="file"
                       accept=".txt,text/plain"
@@ -381,7 +414,7 @@ export default function BookForm({
         {preview && current && (
           <details className="admin-panel book-preview" open>
             <summary>Vista previa · {preview.pages.length} páginas</summary>
-            {multi && (
+            {available.length > 1 && (
               <label>
                 Idioma de la vista previa
                 <select
@@ -412,12 +445,7 @@ export default function BookForm({
                 ))}
               </select>
             </label>
-            <article
-              className="admin-preview"
-              lang={
-                readingUpload ? readingLocale : (book?.originalLocale ?? "es")
-              }
-            >
+            <article className="admin-preview" lang={readingLocale}>
               <h3>{current.chapter}</h3>
               {current.paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>

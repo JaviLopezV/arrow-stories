@@ -66,7 +66,7 @@ async function writeBook(
       size += value.length;
       if (
         size >
-        MAX_TXT_BYTES * 6 * (existing ? 1 : Object.keys(languages).length) +
+        MAX_TXT_BYTES * 6 * Object.keys(languages).length +
           Math.ceil(MAX_COVER_BYTES / 3) * 4 +
           4096
       ) {
@@ -116,7 +116,6 @@ async function writeBook(
     locale = body.locale;
     if (body.texts !== undefined) {
       if (
-        existing ||
         body.text !== undefined ||
         !body.texts ||
         typeof body.texts !== "object" ||
@@ -124,7 +123,10 @@ async function writeBook(
       )
         throw new Error("Las versiones del manuscrito no son válidas.");
       const entries = Object.entries(body.texts);
-      if (entries.length < 2 || !Object.hasOwn(body.texts, locale))
+      if (
+        !existing &&
+        (entries.length < 2 || !Object.hasOwn(body.texts, locale))
+      )
         throw new Error(
           "Adjunta un TXT para el idioma principal y al menos otro idioma.",
         );
@@ -172,6 +174,7 @@ async function writeBook(
     }
     translations[locale] = content ?? { ...translations[oldLocale]!, title };
     if (locale !== oldLocale) delete translations[oldLocale];
+    Object.assign(translations, submittedTranslations);
     try {
       await saveBookEdit({
         ...existing,
