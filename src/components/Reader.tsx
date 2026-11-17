@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import BookAudio from "./BookAudio";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type Story,
   progressKey,
@@ -22,6 +22,11 @@ export default function Reader({ story: source }: { story: Story }) {
   const [ready, setReady] = useState(false);
   const [dark, setDark] = useState(true);
   const [size, setSize] = useState(19);
+  const chapterIndex = useRef<HTMLDialogElement>(null);
+  const chapters = story.pages.filter(
+    (entry, index) =>
+      index === 0 || entry.chapter !== story.pages[index - 1].chapter,
+  );
   const defaultPageCount = localizeStory(
     published,
     published.originalLocale ?? "es",
@@ -45,6 +50,7 @@ export default function Reader({ story: source }: { story: Story }) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
+        chapterIndex.current?.open ||
         (e.target as HTMLElement).matches(
           "input,select,textarea,[contenteditable=true]",
         )
@@ -64,6 +70,9 @@ export default function Reader({ story: source }: { story: Story }) {
   }, [story.pages.length]);
   const visiblePage = Math.min(page, story.pages.length);
   const current = story.pages[visiblePage - 1];
+  const currentChapter = chapters.findLast(
+    (entry) => entry.number <= visiblePage,
+  );
   useEffect(() => {
     setPage((p) => Math.min(p, story.pages.length));
   }, [story.pages.length]);
@@ -73,6 +82,18 @@ export default function Reader({ story: source }: { story: Story }) {
         <Link href="/">← {t.library}</Link>
         <span className="reader-title">{story.title}</span>
         <div className="reader-settings">
+          <button
+            aria-haspopup="dialog"
+            onClick={() => {
+              const dialog = chapterIndex.current;
+              dialog?.showModal();
+              dialog
+                ?.querySelector('[aria-current="location"]')
+                ?.scrollIntoView({ block: "nearest" });
+            }}
+          >
+            {t.chapterIndex}
+          </button>
           <LanguageSwitcher />
           <button
             aria-label={t.smaller}
@@ -96,6 +117,39 @@ export default function Reader({ story: source }: { story: Story }) {
           </button>
         </div>
       </header>
+      <dialog
+        ref={chapterIndex}
+        className="chapter-index"
+        aria-labelledby="chapter-index-title"
+      >
+        <div className="chapter-index-header">
+          <h2 id="chapter-index-title">{t.chapterIndex}</h2>
+          <form method="dialog">
+            <button aria-label={t.closeChapterIndex} autoFocus>
+              ×
+            </button>
+          </form>
+        </div>
+        <ol lang={story.contentLocale}>
+          {chapters.map((entry) => (
+            <li key={entry.number}>
+              <button
+                type="button"
+                aria-current={entry === currentChapter ? "location" : undefined}
+                onClick={() => {
+                  chapterIndex.current?.close();
+                  setPage(entry.number);
+                }}
+              >
+                <span>{entry.chapter}</span>
+                <span lang={locale}>
+                  {t.page} {entry.number}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </dialog>
       <div
         className="reading-progress"
         style={{ width: `${(page / story.pages.length) * 100}%` }}

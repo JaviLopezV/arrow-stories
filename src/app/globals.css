@@ -602,6 +602,73 @@ p {
   color: inherit;
   padding: 7px 10px;
 }
+.chapter-index {
+  width: min(34rem, calc(100% - 2rem));
+  max-height: 80dvh;
+  padding: 0;
+  border: 1px solid var(--reader-border);
+  border-radius: 12px;
+  background: var(--reader-bg);
+  color: var(--reader-text);
+}
+.chapter-index[open] {
+  display: flex;
+  flex-direction: column;
+}
+.chapter-index::backdrop {
+  background: rgb(9 17 31 / 66%);
+}
+.chapter-index-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--reader-border);
+}
+.chapter-index-header h2 {
+  margin: 0;
+}
+.chapter-index button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.chapter-index-header button {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.5rem;
+}
+.chapter-index ol {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0.75rem;
+  list-style: none;
+}
+.chapter-index li button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: start;
+}
+.chapter-index button:hover,
+.chapter-index button[aria-current] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.chapter-index button[aria-current] {
+  box-shadow: inset 3px 0 var(--accent);
+}
+.chapter-index li button span:last-child {
+  color: var(--reader-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
 .book-downloads {
   display: flex;
   justify-content: center;

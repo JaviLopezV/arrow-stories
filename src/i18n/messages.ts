@@ -108,6 +108,8 @@ export const messages = {
     shortStory: "RELATO",
     novel: "NOVELA",
     chapter: "Capítulo",
+    chapterIndex: "Índice",
+    closeChapterIndex: "Cerrar índice",
   },
   ca: {
     authorLabel: "AUTOR",
@@ -212,6 +214,8 @@ export const messages = {
     shortStory: "RELAT",
     novel: "NOVEL·LA",
     chapter: "Capítol",
+    chapterIndex: "Índex",
+    closeChapterIndex: "Tanca l’índex",
   },
   en: {
     authorLabel: "AUTHOR",
@@ -315,5 +319,7 @@ export const messages = {
     shortStory: "SHORT STORY",
     novel: "NOVEL",
     chapter: "Chapter",
+    chapterIndex: "Contents",
+    closeChapterIndex: "Close contents",
   },
 };
