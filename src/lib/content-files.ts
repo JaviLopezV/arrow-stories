@@ -37,15 +37,26 @@ function missing(error: unknown) {
   return (error as NodeJS.ErrnoException).code === "ENOENT";
 }
 
-export async function readBlobFile(key: string) {
+export async function readBlobFile(key: string, forConditionalWrite = false) {
   const result = await get(prefix + key, {
     access: "private",
     useCache: false,
+    // Compression can turn the response ETag into a weak validator.
+    headers: forConditionalWrite
+      ? { "Accept-Encoding": "identity" }
+      : undefined,
   });
   if (result?.statusCode !== 200) return null;
+  const etag = result.blob.etag;
+  if (forConditionalWrite && (!etag || etag.startsWith("W/"))) {
+    await result.stream.cancel();
+    throw new Error(
+      "Vercel Blob no devolvió un ETag válido para actualizar el archivo.",
+    );
+  }
   return {
     text: await new Response(result.stream).text(),
-    etag: result.blob.etag,
+    etag,
   };
 }
 

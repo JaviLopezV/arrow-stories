@@ -159,7 +159,7 @@ export async function reviewBook(slug: string, approve: boolean) {
 
   // The decision and manuscript are committed together, even if requests race.
   const key = submissionKey(slug);
-  const stored = await readBlobFile(key);
+  const stored = await readBlobFile(key, true);
   if (!stored) return false;
   const submission: Submission = JSON.parse(stored.text);
   if (submission.status !== "pending") return false;
