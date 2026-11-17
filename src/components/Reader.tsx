@@ -113,6 +113,7 @@ export default function Reader({ story: source }: { story: Story }) {
           key={`${story.slug}:${locale}`}
           book={story}
           contentLocale={story.contentLocale}
+          page={visiblePage}
         />
         <p className="eyebrow">{story.author}</p>
         {story.source && (
