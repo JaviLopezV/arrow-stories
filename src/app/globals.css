@@ -601,6 +601,18 @@ p {
   color: inherit;
   padding: 7px 10px;
 }
+.book-audio {
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.book-audio .reader-settings {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.book-audio [role="status"]:not(:empty) {
+  margin-top: 10px;
+  text-align: center;
+}
 .reading-progress {
   height: 2px;
   background: var(--accent);

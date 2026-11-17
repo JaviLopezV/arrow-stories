@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import BookAudio from "./BookAudio";
 import { useEffect, useState } from "react";
 import {
   type Story,
@@ -108,6 +109,11 @@ export default function Reader({ story: source }: { story: Story }) {
             {t.fallback} {languages[story.contentLocale]}.
           </p>
         )}
+        <BookAudio
+          key={`${story.slug}:${locale}`}
+          book={story}
+          contentLocale={story.contentLocale}
+        />
         <p className="eyebrow">{story.author}</p>
         {story.source && (
           <p className="translation-notice">
