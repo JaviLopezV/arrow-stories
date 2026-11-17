@@ -6,8 +6,9 @@ import {
   StyleSheet,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { join } from "node:path";
 import type { localizeStory } from "@/content/stories";
+import regularFont from "./pdf-fonts/DejaVuSerif.ttf";
+import boldFont from "./pdf-fonts/DejaVuSerif-Bold.ttf";
 
 type Book = ReturnType<typeof localizeStory>;
 
@@ -41,13 +42,9 @@ export function bookAsText(book: Book) {
   );
 }
 
-const fontDirectory = join(process.cwd(), "src/lib/pdf-fonts");
 Font.register({
   family: "DejaVu Serif",
-  fonts: [
-    { src: join(fontDirectory, "DejaVuSerif.ttf") },
-    { src: join(fontDirectory, "DejaVuSerif-Bold.ttf"), fontWeight: 700 },
-  ],
+  fonts: [{ src: regularFont }, { src: boldFont, fontWeight: 700 }],
 });
 
 const styles = StyleSheet.create({
