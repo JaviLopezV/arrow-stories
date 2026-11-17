@@ -602,6 +602,25 @@ p {
   color: inherit;
   padding: 7px 10px;
 }
+.book-downloads {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 24px;
+  font-size: 13px;
+}
+
+.book-downloads a {
+  border: 1px solid var(--reader-border);
+  border-radius: 4px;
+  padding: 7px 10px;
+}
+
+.book-downloads a:hover,
+.book-downloads a:focus-visible {
+  text-decoration: underline;
+}
 .book-audio {
   margin-bottom: 24px;
   font-size: 13px;

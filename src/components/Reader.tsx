@@ -14,6 +14,7 @@ export default function Reader({ story: source }: { story: Story }) {
   const { locale, t } = useLanguage();
   const published = source;
   const story = localizeStory(published, locale);
+  const downloadUrl = `/api/books/${story.slug}/download/?lang=${story.contentLocale}`;
   useEffect(() => {
     document.title = `${story.title} · Lumbre`;
   }, [story.title]);
@@ -123,6 +124,14 @@ export default function Reader({ story: source }: { story: Story }) {
           </p>
         )}
         <h1>{story.title}</h1>
+        <div className="book-downloads">
+          <a href={`${downloadUrl}&format=txt`} download>
+            {t.downloadBook} TXT
+          </a>
+          <a href={`${downloadUrl}&format=pdf`} download>
+            {t.downloadBook} PDF
+          </a>
+        </div>
         <div className="chapter">
           <span />
           {current.chapter}
