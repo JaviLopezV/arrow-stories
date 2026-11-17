@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { genreCover, genres, isGenre } from "@/content/genres";
 import { languages, type Locale } from "@/i18n/messages";
 import { useEffect, useState } from "react";
 import {
@@ -96,11 +97,7 @@ export default function Catalog({ books }: { books: Story[] }) {
               <h1 lang={story.contentLocale}>{story.title}</h1>
               <div className="metadata">
                 <span>
-                  {
-                    t[
-                      story.genre as "fantasy" | "mystery" | "romance" | "drama"
-                    ]
-                  }
+                  {isGenre(story.genre) ? t[story.genre] : story.genre}
                 </span>
                 <i />
                 {story.pages.length} {t.pages}
@@ -138,20 +135,20 @@ export default function Catalog({ books }: { books: Story[] }) {
             </span>
           </div>
           <div className="library-toolbar">
-            <div className="filters" aria-label={t.filter}>
-              {(["all", "fantasy", "mystery", "romance", "drama"] as const).map(
-                (item) => (
-                  <button
-                    key={item}
-                    aria-pressed={filter === item}
-                    className={filter === item ? "selected" : ""}
-                    onClick={() => setFilter(item)}
-                  >
+            <label className="library-language">
+              {t.filter}
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="all">{t.all}</option>
+                {genres.map((item) => (
+                  <option key={item} value={item}>
                     {t[item]}
-                  </button>
-                ),
-              )}
-            </div>
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="library-search-controls">
               <label className="library-language">
                 {t.filterLanguage}
@@ -227,13 +224,9 @@ function BookCard({ book }: { book: ReturnType<typeof localizeStory> }) {
       setProgress(0);
     }
   }, [book.slug, book.pages.length]);
-  const genre = book.genre as "fantasy" | "mystery" | "romance" | "drama";
-  const art = {
-    fantasy: "forest",
-    mystery: "city",
-    romance: "moon",
-    drama: "summer",
-  }[genre];
+  const genre = isGenre(book.genre) ? book.genre : undefined;
+  const art = genre ? genreCover[genre] : "";
+  const genreLabel = genre ? t[genre] : book.genre;
   return (
     <Link href={`/leer/${book.slug}`} className="story-card">
       <div className={`cover ${art} ${book.cover ? "uploaded-cover" : ""}`}>
@@ -242,7 +235,7 @@ function BookCard({ book }: { book: ReturnType<typeof localizeStory> }) {
         <div className="cover-type">
           <small>{book.author}</small>
           <h3>{book.title}</h3>
-          <span>{t[genre]}</span>
+          <span>{genreLabel}</span>
         </div>
         <span className="cover-arrow">↗</span>
         {progress > 0 && (
@@ -253,7 +246,7 @@ function BookCard({ book }: { book: ReturnType<typeof localizeStory> }) {
         )}
       </div>
       <div className="card-meta">
-        <span>{t[genre]}</span>
+        <span>{genreLabel}</span>
         <span>
           {book.pages.length} {t.pages}
         </span>

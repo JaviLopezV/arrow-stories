@@ -1,3 +1,4 @@
+import { isGenre } from "@/content/genres";
 import type { StoryTranslation } from "@/content/stories";
 import { MAX_COVER_BYTES, validateCover } from "@/lib/book-cover";
 import { NextRequest, NextResponse } from "next/server";
@@ -96,8 +97,7 @@ async function writeBook(
       body.author.trim().length > 120
     )
       throw new Error("Introduce un autor de hasta 120 caracteres.");
-    if (!["fantasy", "mystery", "romance", "drama"].includes(body.genre))
-      throw new Error("Selecciona un género válido.");
+    if (!isGenre(body.genre)) throw new Error("Selecciona un género válido.");
     if (
       typeof body.locale !== "string" ||
       !Object.hasOwn(languages, body.locale)

@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { COVER_ACCEPT, MAX_COVER_BYTES } from "@/lib/book-cover";
 import { MAX_TXT_BYTES, parseTxt } from "@/lib/import-txt";
 import { localizeStory, type Story } from "@/content/stories";
-import { languages, type Locale } from "@/i18n/messages";
+import { genres } from "@/content/genres";
+import { languages, messages, type Locale } from "@/i18n/messages";
 
 type Upload = { text: string; name: string };
 const localeOptions = Object.keys(languages) as Locale[];
@@ -193,10 +194,11 @@ export default function BookForm({
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
                   >
-                    <option value="fantasy">Fantasía</option>
-                    <option value="mystery">Misterio</option>
-                    <option value="romance">Romance</option>
-                    <option value="drama">Drama</option>
+                    {genres.map((item) => (
+                      <option key={item} value={item}>
+                        {messages.es[item]}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label>

@@ -267,25 +267,6 @@ p {
   padding-bottom: 20px;
   gap: 20px;
 }
-.filters {
-  display: flex;
-  gap: 8px;
-}
-.filters button {
-  border: 1px solid transparent;
-  border-radius: 25px;
-  color: #a9bad4;
-  background: transparent;
-  font-size: 11px;
-  padding: 9px 17px;
-}
-.filters .selected {
-  background: #dbe9fc;
-  color: #15243d;
-}
-.filters button:hover:not(.selected) {
-  border-color: #526b90;
-}
 .search {
   display: flex;
   align-items: center;
@@ -832,13 +813,6 @@ p {
     flex-direction: column;
     margin-top: 24px;
     gap: 12px;
-  }
-  .filters {
-    gap: 2px;
-    flex-wrap: wrap;
-  }
-  .filters button {
-    padding: 8px 12px;
   }
   .search input {
     width: 100%;
