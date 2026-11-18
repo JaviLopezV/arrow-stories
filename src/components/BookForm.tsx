@@ -13,11 +13,13 @@ const localeOptions = Object.keys(languages) as Locale[];
 
 export default function BookForm({
   book,
+  direct = false,
   token,
   onSave,
   onCancel,
 }: {
   book?: Story;
+  direct?: boolean;
   token?: string;
   onSave: (result: { title: string; author: string; slug: string }) => void;
   onCancel?: () => void;
@@ -57,6 +59,7 @@ export default function BookForm({
     : Boolean(upload);
   const [page, setPage] = useState(0);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
+  const canSave = Boolean(book) || (readyToSend && (direct || acceptsTerms));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const preview = useMemo(
@@ -131,14 +134,16 @@ export default function BookForm({
   }
 
   async function save() {
-    if (busy || (!book && (!readyToSend || !acceptsTerms))) return;
+    if (busy || !canSave) return;
     setBusy(true);
     setError("");
     try {
       const response = await fetch(
         book
           ? `/api/books/?slug=${encodeURIComponent(book.slug)}`
-          : "/api/books/",
+          : direct
+            ? "/api/books/?action=publish"
+            : "/api/books/",
         {
           method: book ? "PATCH" : "POST",
           headers: {
@@ -146,7 +151,7 @@ export default function BookForm({
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
-            termsVersion: book ? undefined : submissionTermsVersion,
+            termsVersion: book || direct ? undefined : submissionTermsVersion,
             title,
             author,
             genre,
@@ -453,7 +458,7 @@ export default function BookForm({
             </article>
           </details>
         )}
-        {!book && (
+        {!book && !direct && (
           <div className="submission-legal" lang="es">
             <p>
               {siteOwner.name} usa los datos y archivos del envío para revisar
@@ -489,7 +494,9 @@ export default function BookForm({
                 ? "Procesando…"
                 : book
                   ? "Se mantiene el enlace del libro y su estado actual."
-                  : "El cuento aparecerá en la biblioteca si se aprueba.")}
+                  : direct
+                    ? "El libro será visible en la biblioteca inmediatamente."
+                    : "El cuento aparecerá en la biblioteca si se aprueba.")}
           </p>
           <div className="book-actions">
             {onCancel && (
@@ -500,13 +507,13 @@ export default function BookForm({
             <button
               type="submit"
               className="button primary"
-              disabled={
-                !title.trim() ||
-                !author.trim() ||
-                (!book && (!readyToSend || !acceptsTerms))
-              }
+              disabled={!title.trim() || !author.trim() || !canSave}
             >
-              {book ? "Guardar cambios" : "Enviar para revisión"}
+              {book
+                ? "Guardar cambios"
+                : direct
+                  ? "Publicar libro"
+                  : "Enviar para revisión"}
             </button>
           </div>
         </div>

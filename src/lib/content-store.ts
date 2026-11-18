@@ -73,6 +73,12 @@ export async function submitBook(story: Story, termsVersion: string) {
   await writeContentFile(pendingKey(story.slug), JSON.stringify(story));
 }
 
+export async function publishBook(story: Story) {
+  await writeContentFile(`books/${story.slug}.json`, JSON.stringify(story), {
+    create: true,
+  });
+}
+
 export async function saveBookEdit(story: Story) {
   await writeContentFile(`edits/${story.slug}.json`, JSON.stringify(story));
 }

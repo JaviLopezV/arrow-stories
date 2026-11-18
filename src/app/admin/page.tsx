@@ -13,6 +13,7 @@ export default function Admin() {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [books, setBooks] = useState<ManagedBook[]>([]);
   const [deleting, setDeleting] = useState<ManagedBook | null>(null);
+  const [publishing, setPublishing] = useState(false);
   const [editing, setEditing] = useState<Story | null>(null);
   const [section, setSection] = useState<"catalog" | "requests">("catalog");
   const [queryText, setQueryText] = useState("");
@@ -150,6 +151,7 @@ export default function Admin() {
             disabled={busy}
             onChange={(event) => {
               setToken(event.target.value);
+              setPublishing(false);
               setEditing(null);
               setEntries(null);
               setBooks([]);
@@ -189,6 +191,7 @@ export default function Admin() {
             aria-pressed={section === "requests"}
             onClick={() => {
               setSection("requests");
+              setPublishing(false);
               setEditing(null);
             }}
           >
@@ -216,9 +219,36 @@ export default function Admin() {
           />
         </section>
       )}
-      {entries && section === "catalog" && !editing && (
+      {entries && section === "catalog" && publishing && (
+        <section className="workspace-editor" aria-label="Publicar un libro">
+          <h2>Publicar un libro</h2>
+          <BookForm
+            direct
+            token={token}
+            onCancel={() => setPublishing(false)}
+            onSave={(result) => {
+              setBooks((items) => [...items, { ...result, status: "active" }]);
+              setQueryText("");
+              setPublishing(false);
+              setNotice("Libro publicado en la biblioteca.");
+            }}
+          />
+        </section>
+      )}
+      {entries && section === "catalog" && !editing && !publishing && (
         <section className="admin-panel">
           <h2>Libros del catálogo ({books.length})</h2>
+          <div className="book-actions">
+            <button
+              disabled={busy}
+              onClick={() => {
+                setPublishing(true);
+                setNotice("");
+              }}
+            >
+              Publicar libro
+            </button>
+          </div>
           {!books.length && <p>No hay libros para gestionar.</p>}
           <label>
             Buscar por título o autor

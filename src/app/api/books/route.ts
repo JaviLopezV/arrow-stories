@@ -8,6 +8,7 @@ import { ContentStorageNotConfiguredError } from "@/lib/content-files";
 import {
   bookStatus,
   getStoredStory,
+  publishBook,
   saveBookEdit,
   submitBook,
 } from "@/lib/content-store";
@@ -16,7 +17,13 @@ import { MAX_TXT_BYTES, parseTxt } from "@/lib/import-txt";
 import { languages, type Locale } from "@/i18n/messages";
 export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
-  return writeBook(request);
+  const direct = request.nextUrl.searchParams.get("action") === "publish";
+  if (direct && !authorized(request))
+    return NextResponse.json(
+      { error: "Clave de administrador no válida." },
+      { status: 401 },
+    );
+  return writeBook(request, { direct });
 }
 export async function PATCH(request: NextRequest) {
   if (!authorized(request))
@@ -36,11 +43,17 @@ export async function PATCH(request: NextRequest) {
       { error: "El libro no está disponible para editar." },
       { status: 404 },
     );
-  return writeBook(request, book);
+  return writeBook(request, { existing: book });
 }
 async function writeBook(
   request: NextRequest,
-  existing?: Awaited<ReturnType<typeof getStoredStory>>,
+  {
+    existing,
+    direct,
+  }: {
+    existing?: Awaited<ReturnType<typeof getStoredStory>>;
+    direct?: boolean;
+  },
 ) {
   if (!sameOrigin(request))
     return NextResponse.json(
@@ -81,7 +94,7 @@ async function writeBook(
     const body = JSON.parse(
       new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)),
     );
-    if (!existing && body.termsVersion !== submissionTermsVersion)
+    if (!existing && !direct && body.termsVersion !== submissionTermsVersion)
       throw new Error(
         "Acepta las condiciones de envío vigentes. Actualiza la página si han cambiado.",
       );
@@ -206,18 +219,17 @@ async function writeBook(
       .slice(0, 80) || "libro";
   const slug = `${prefix}-${randomUUID()}`;
   try {
-    await submitBook(
-      {
-        slug,
-        title,
-        author,
-        genre,
-        cover,
-        originalLocale: locale,
-        translations: { ...submittedTranslations, [locale]: content },
-      },
-      submissionTermsVersion,
-    );
+    const story = {
+      slug,
+      title,
+      author,
+      genre,
+      cover,
+      originalLocale: locale,
+      translations: { ...submittedTranslations, [locale]: content },
+    };
+    if (direct) await publishBook(story);
+    else await submitBook(story, submissionTermsVersion);
     return NextResponse.json(
       { slug, title, pages: content.pages.length },
       { status: 201 },
