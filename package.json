@@ -8,9 +8,11 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "migrate:content": "node scripts/migrate-content.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
     "@vercel/blob": "^2.9.0",
     "next": "^15.5.24",
     "react": "^19.1.0",

@@ -55,11 +55,11 @@ export default function PrivacyPolicy() {
       </p>
       <h2>Alojamiento y revisión editorial</h2>
       <p>
-        Vercel aloja el sitio y proporciona el almacenamiento privado de envíos
-        mediante Vercel Blob. Si se habilita Workers AI y el editor pide una
-        revisión, se envía a Cloudflare el título y el texto principal o un
-        fragmento. El informe se guarda junto al resto de datos editoriales. La
-        decisión de publicación la toma una persona.
+        Vercel aloja el sitio y Neon proporciona el almacenamiento privado de
+        envíos. Si se habilita Workers AI y el editor pide una revisión, se
+        envía a Cloudflare el título y el texto principal o un fragmento. El
+        informe se guarda junto al resto de datos editoriales. La decisión de
+        publicación la toma una persona.
       </p>
       <p>
         Estos proveedores pueden tratar datos fuera del Espacio Económico
@@ -67,7 +67,8 @@ export default function PrivacyPolicy() {
         prevén mecanismos como decisiones de adecuación o cláusulas
         contractuales tipo, según el destino y el proveedor. Puedes consultar
         las garantías en los acuerdos de{" "}
-        <a href="https://vercel.com/legal/dpa">Vercel</a> y{" "}
+        <a href="https://vercel.com/legal/dpa">Vercel</a>,{" "}
+        <a href="https://neon.com/pdf/DPA.pdf">Neon</a> y{" "}
         <a href="https://www.cloudflare.com/cloudflare-customer-dpa/">
           Cloudflare
         </a>{" "}

@@ -1,5 +1,5 @@
 import "server-only";
-import { del, get, list, put } from "@vercel/blob";
+import { neon } from "@neondatabase/serverless";
 import { randomUUID } from "node:crypto";
 import {
   mkdir,
@@ -11,7 +11,6 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 
-const prefix = "content/";
 const localPath = (key: string) =>
   path.join(
     process.env.CONTENT_DIRECTORY ||
@@ -19,16 +18,22 @@ const localPath = (key: string) =>
     key,
   );
 
-export const usesBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+export const usesDatabase = () => Boolean(process.env.DATABASE_URL);
+
+function database() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new ContentStorageNotConfiguredError();
+  return neon(url);
+}
 
 export class ContentStorageNotConfiguredError extends Error {
   constructor() {
-    super("Falta conectar un almacén privado de Vercel Blob al proyecto.");
+    super("Falta configurar DATABASE_URL para conectar el proyecto a Neon.");
   }
 }
 
 export function checkContentStorage() {
-  if (process.env.VERCEL === "1" && !usesBlob()) {
+  if (process.env.VERCEL === "1" && !usesDatabase()) {
     throw new ContentStorageNotConfiguredError();
   }
 }
@@ -37,31 +42,13 @@ function missing(error: unknown) {
   return (error as NodeJS.ErrnoException).code === "ENOENT";
 }
 
-export async function readBlobFile(key: string, forConditionalWrite = false) {
-  const result = await get(prefix + key, {
-    access: "private",
-    useCache: false,
-    // Compression can turn the response ETag into a weak validator.
-    headers: forConditionalWrite
-      ? { "Accept-Encoding": "identity" }
-      : undefined,
-  });
-  if (result?.statusCode !== 200) return null;
-  const etag = result.blob.etag;
-  if (forConditionalWrite && (!etag || etag.startsWith("W/"))) {
-    await result.stream.cancel();
-    throw new Error(
-      "Vercel Blob no devolvió un ETag válido para actualizar el archivo.",
-    );
-  }
-  return {
-    text: await new Response(result.stream).text(),
-    etag,
-  };
-}
-
 export async function readContentFile(key: string) {
-  if (usesBlob()) return (await readBlobFile(key))?.text ?? null;
+  checkContentStorage();
+  if (usesDatabase()) {
+    const sql = database();
+    const [row] = await sql`SELECT body FROM story_content WHERE key = ${key}`;
+    return (row?.body as string | undefined) ?? null;
+  }
   try {
     return await readFile(localPath(key), "utf8");
   } catch (error) {
@@ -71,20 +58,18 @@ export async function readContentFile(key: string) {
 }
 
 export async function listContentFiles(directory: string) {
-  if (usesBlob()) {
-    const directoryPrefix = prefix + directory + "/";
-    const names: string[] = [];
-    let cursor: string | undefined;
-    do {
-      const result = await list({ prefix: directoryPrefix, cursor });
-      names.push(
-        ...result.blobs.map((blob) =>
-          blob.pathname.slice(directoryPrefix.length),
-        ),
-      );
-      cursor = result.hasMore ? result.cursor : undefined;
-    } while (cursor);
-    return names.filter((name) => !name.includes("/"));
+  checkContentStorage();
+  if (usesDatabase()) {
+    const sql = database();
+    const prefix = directory + "/";
+    const rows = await sql`
+      SELECT substr(key, length(${prefix}) + 1) AS name
+      FROM story_content
+      WHERE key LIKE ${prefix + "%"}
+        AND strpos(substr(key, length(${prefix}) + 1), '/') = 0
+      ORDER BY key
+    `;
+    return rows.map((row) => row.name as string);
   }
   try {
     return await readdir(localPath(directory));
@@ -97,16 +82,19 @@ export async function listContentFiles(directory: string) {
 export async function writeContentFile(
   key: string,
   text: string,
-  options: { create?: boolean; ifMatch?: string } = {},
+  options: { create?: boolean } = {},
 ) {
   checkContentStorage();
-  if (usesBlob()) {
-    await put(prefix + key, text, {
-      access: "private",
-      allowOverwrite: !options.create,
-      ifMatch: options.ifMatch,
-      multipart: Buffer.byteLength(text) > 4 * 1024 * 1024,
-    });
+  if (usesDatabase()) {
+    const sql = database();
+    if (options.create) {
+      await sql`INSERT INTO story_content (key, body) VALUES (${key}, ${text})`;
+    } else {
+      await sql`
+        INSERT INTO story_content (key, body) VALUES (${key}, ${text})
+        ON CONFLICT (key) DO UPDATE SET body = EXCLUDED.body
+      `;
+    }
     return;
   }
   const target = localPath(key);
@@ -118,8 +106,9 @@ export async function writeContentFile(
 
 export async function deleteContentFile(key: string) {
   checkContentStorage();
-  if (usesBlob()) {
-    await del(prefix + key);
+  if (usesDatabase()) {
+    const sql = database();
+    await sql`DELETE FROM story_content WHERE key = ${key}`;
     return;
   }
   try {
@@ -140,4 +129,18 @@ export async function moveLocalContentFile(from: string, to: string) {
     if (!missing(error)) throw error;
     return false;
   }
+}
+
+export async function updateContentFileIfUnchanged(
+  key: string,
+  previous: string,
+  next: string,
+) {
+  const sql = database();
+  const rows = await sql`
+    UPDATE story_content SET body = ${next}
+    WHERE key = ${key} AND body = ${previous}
+    RETURNING key
+  `;
+  return rows.length > 0;
 }

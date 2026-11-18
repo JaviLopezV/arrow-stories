@@ -1,5 +1,4 @@
 import "server-only";
-import { BlobPreconditionFailedError } from "@vercel/blob";
 import type { Locale } from "@/i18n/messages";
 import type { Story, StoryTranslation } from "@/content/stories";
 import { stories } from "@/content/built-in-stories";
@@ -7,9 +6,9 @@ import {
   deleteContentFile,
   listContentFiles,
   moveLocalContentFile,
-  readBlobFile,
   readContentFile,
-  usesBlob,
+  updateContentFileIfUnchanged,
+  usesDatabase,
   writeContentFile,
 } from "@/lib/content-files";
 
@@ -55,7 +54,7 @@ export async function restore(slug: string, locale: Locale) {
 }
 
 export async function submitBook(story: Story, termsVersion: string) {
-  if (usesBlob()) {
+  if (usesDatabase()) {
     const submission: Submission = {
       story,
       status: "pending",
@@ -88,7 +87,7 @@ export async function getStoredStory(
   let story =
     stories.find((s) => s.slug === slug) ??
     (await readJson<Story>(`books/${slug}.json`));
-  if (!story && usesBlob()) {
+  if (!story && usesDatabase()) {
     const submission = await readJson<Submission>(submissionKey(slug));
     if (submission?.status === "approved") story = submission.story;
   }
@@ -123,7 +122,7 @@ export async function getStoredStory(
 export async function listStories(includeHidden = false): Promise<Story[]> {
   const [books, submissions] = await Promise.all([
     listSlugs("books"),
-    usesBlob() ? listSlugs(submissionDirectory) : [],
+    usesDatabase() ? listSlugs(submissionDirectory) : [],
   ]);
   const slugs = new Set([
     ...stories.map((story) => story.slug),
@@ -137,19 +136,19 @@ export async function listStories(includeHidden = false): Promise<Story[]> {
 }
 
 export async function listPendingBooks() {
-  return listSlugs(usesBlob() ? submissionDirectory : "requests/pending");
+  return listSlugs(usesDatabase() ? submissionDirectory : "requests/pending");
 }
 
 export async function getPendingBook(slug: string): Promise<Story | null> {
   if (!validSlug(slug)) return null;
-  if (!usesBlob()) return readJson<Story>(pendingKey(slug));
+  if (!usesDatabase()) return readJson<Story>(pendingKey(slug));
   const submission = await readJson<Submission>(submissionKey(slug));
   return submission?.status === "pending" ? submission.story : null;
 }
 
 export async function reviewBook(slug: string, approve: boolean) {
   if (!validSlug(slug)) return false;
-  if (!usesBlob()) {
+  if (!usesDatabase()) {
     const destination = approve ? "books" : "requests/rejected";
     return moveLocalContentFile(
       pendingKey(slug),
@@ -157,22 +156,17 @@ export async function reviewBook(slug: string, approve: boolean) {
     );
   }
 
-  // The decision and manuscript are committed together, even if requests race.
   const key = submissionKey(slug);
-  const stored = await readBlobFile(key, true);
-  if (!stored) return false;
-  const submission: Submission = JSON.parse(stored.text);
+  const previous = await readContentFile(key);
+  if (previous === null) return false;
+  const submission: Submission = JSON.parse(previous);
   if (submission.status !== "pending") return false;
   submission.status = approve ? "approved" : "rejected";
-  try {
-    await writeContentFile(key, JSON.stringify(submission), {
-      ifMatch: stored.etag,
-    });
-    return true;
-  } catch (error) {
-    if (error instanceof BlobPreconditionFailedError) return false;
-    throw error;
-  }
+  return updateContentFileIfUnchanged(
+    key,
+    previous,
+    JSON.stringify(submission),
+  );
 }
 
 export type BookStatus = "active" | "inactive" | "deleted";
